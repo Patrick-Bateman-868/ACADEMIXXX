@@ -1,55 +1,60 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Add Opportunity</title>
+{% extends "base.html" %}
 
+{% block title %}Добавить возможность — Gold Students Club{% endblock %}
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-
-<div class="container mt-5" style="max-width: 600px;">
-
-    <h2 class="mb-4 text-center">Add Opportunity</h2>
-
-    <form method="post">
-
-        <div class="mb-3">
-            <label class="form-label">Title</label>
-            <input name="title" class="form-control" placeholder="Scholarship, Internship..." required>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Category</label>
-            <select name="category" class="form-select">
-                <option value="Grant">Grant</option>
-                <option value="Internship">Internship</option>
-                <option value="Project">Project</option>
-            </select>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Description</label>
-            <textarea name="description" class="form-control" rows="4"></textarea>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Deadline</label>
-            <input name="deadline" class="form-control" placeholder="15 March 2026">
-        </div>
-
-        <button type="submit" class="btn btn-dark w-100">
-            Submit Opportunity
-        </button>
-
-    </form>
-
-    <div class="text-center mt-3">
-        <a href="/opportunities">← Back to opportunities</a>
+{% block content %}
+    <div class="page-header">
+        <h1>Добавить возможность</h1>
+        <p class="subtitle">Поделитесь проверенной возможностью с сообществом</p>
     </div>
 
-</div>
+    <div class="container-narrow">
+        <div class="card">
+            <form method="post">
+                <div class="form-group">
+                    <label class="form-label">Название *</label>
+                    <input type="text" name="title" class="form-control" placeholder="Название гранта, стажировки или проекта" required>
+                </div>
 
-</body>
-</html>
+                <div class="form-group">
+                    <label class="form-label">Категория *</label>
+                    <select name="category" class="form-select" required>
+                        <option value="">Выберите категорию</option>
+                        <option value="Grant">Грант</option>
+                        <option value="Internship">Стажировка</option>
+                        <option value="Project">Проект / Работа</option>
+                        <option value="Mentor">Ментор</option>
+                        <option value="Housing">Жильё</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Описание</label>
+                    <textarea name="description" class="form-control" rows="4" placeholder="Подробное описание возможности"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Требования</label>
+                    <textarea name="requirements" class="form-control" rows="3" placeholder="Требования к кандидатам"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Источник / партнёр</label>
+                    <input type="text" name="source" class="form-control" placeholder="Организация или контакт">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Дедлайн</label>
+                    <input type="text" name="deadline" class="form-control" placeholder="15 марта 2026">
+                    <small class="text-muted">Укажите дату дедлайна подачи заявки</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg">
+                    Отправить на модерацию
+                </button>
+            </form>
+        </div>
+
+        <a href="/opportunities" class="back-link">← Назад к возможностям</a>
+    </div>
+{% endblock %}

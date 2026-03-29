@@ -1,65 +1,157 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Opportunities</title>
+{% extends "base.html" %}
 
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
+{% block title %}Возможности — Gold Students Club{% endblock %}
 
-<div class="container mt-5">
+{% block content %}
+    <div class="container">
+        <div class="flex-between mb-4">
+            <div>
+                <h1>Возможности</h1>
+                <p class="text-muted">Проверенные возможности для вашего развития</p>
+            </div>
+            <a href="/add-opportunity" class="btn btn-primary">
+                + Добавить возможность
+            </a>
+        </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Opportunities</h2>
-        <a href="/add-opportunity" class="btn btn-dark">
-            + Add Opportunity
-        </a>
-    </div>
-
-    {% if opportunities %}
-        <div class="row">
-            {% for op in opportunities %}
-                <div class="col-md-6 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-
-                            <h5 class="card-title">
-    <a href="/opportunity/{{ op.id }}">
-        {{ op.title }}
-    </a>
-</h5>
-
-
-                            <h6 class="card-subtitle mb-2 text-muted">
-                                {{ op.category }} | Deadline: {{ op.deadline }}
-                            </h6>
-
-                            <p class="card-text">
-                                {{ op.description }}
-                            </p>
-
-                            {% if op.verified %}
-                                <span class="badge bg-success">Verified</span>
-                            {% else %}
-                                <span class="badge bg-secondary">Pending verification</span>
-                            {% endif %}
-
-                        </div>
+        <!-- Фильтры и поиск -->
+        <div class="card mb-4" style="background: var(--white);">
+            <form method="GET" action="/opportunities" class="filter-form">
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: var(--spacing-md); align-items: end;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Поиск</label>
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Название, описание, требования, партнёр..." 
+                               value="{{ current_search }}">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Категория</label>
+                        <select name="category" class="form-select">
+                            <option value="">Все</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat }}" {% if current_category == cat %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Сортировка</label>
+                        <select name="sort" class="form-select">
+                            <option value="" {% if sort == '' %}selected{% endif %}>Сначала новые</option>
+                            <option value="deadline" {% if sort == 'deadline' %}selected{% endif %}>По дедлайну</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="display: flex; align-items: center; gap: var(--spacing-xs); cursor: pointer; margin-bottom: var(--spacing-xs);"><input type="checkbox" name="verified" {% if verified_only %}checked{% endif %}"> Верифицированные</label>
+                        <label style="display: flex; align-items: center; gap: var(--spacing-xs); cursor: pointer;"><input type="checkbox" name="deadline" {% if with_deadline %}checked{% endif %}"> С дедлайном</label>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary btn-block">Применить</button>
+                        {% if current_search or current_category or verified_only or with_deadline or sort %}
+                            <a href="/opportunities" class="btn btn-secondary btn-sm btn-block mt-2">Сбросить</a>
+                        {% endif %}
                     </div>
                 </div>
-            {% endfor %}
+            </form>
         </div>
-    {% else %}
-        <p class="text-muted">No opportunities yet.</p>
-    {% endif %}
 
-    <div class="mt-4">
-        <a href="/">← Back to home</a>
+        {% if opportunities %}
+            <p class="text-muted mb-3">
+                Найдено: {{ pagination.total }} возможностей
+                {% if pagination.pages > 1 %}
+                    (Страница {{ pagination.page }} из {{ pagination.pages }})
+                {% endif %}
+            </p>
+            <div class="grid grid-2">
+                {% for op in opportunities %}
+                    <div class="card opportunity-card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <a href="/opportunity/{{ op.id }}">{{ op.title }}</a>
+                            </h3>
+                            <div class="card-subtitle">
+                                <span class="category-tag">{{ op.category }}</span>
+                                {% if op.deadline %}
+                                    <span class="deadline">Дедлайн: {{ op.deadline }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <p class="card-text">
+                            {% if op.description %}
+                                {{ op.description[:150] }}{% if op.description|length > 150 %}...{% endif %}
+                            {% else %}
+                                <span class="text-muted">Описание отсутствует</span>
+                            {% endif %}
+                        </p>
+                        <div class="card-footer">
+                            <div>
+                                {% if op.verified %}
+                                    <span class="badge badge-success">✓ Verified</span>
+                                {% else %}
+                                    <span class="badge badge-warning">Pending</span>
+                                {% endif %}
+                                {% if op.views_count %}
+                                    <span class="text-muted" style="font-size: var(--font-size-xs); margin-left: var(--spacing-sm);">
+                                        👁 {{ op.views_count }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <a href="/opportunity/{{ op.id }}" class="btn btn-outline btn-sm">Подробнее →</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Пагинация -->
+            {% if pagination.pages > 1 %}
+                <div class="pagination mt-4">
+                    <div class="flex-center gap-sm">
+                        {% if pagination.has_prev %}
+                            {% set prev_url = '/opportunities?page=' + pagination.prev_num|string %}
+                            {% if current_category %}{% set prev_url = prev_url + '&category=' + current_category %}{% endif %}
+                            {% if current_search %}{% set prev_url = prev_url + '&search=' + current_search %}{% endif %}
+                            {% if verified_only %}{% set prev_url = prev_url + '&verified=on' %}{% endif %}
+                            {% if with_deadline %}{% set prev_url = prev_url + '&deadline=on' %}{% endif %}
+                            {% if sort %}{% set prev_url = prev_url + '&sort=' + sort %}{% endif %}
+                            <a href="{{ prev_url }}" class="btn btn-secondary btn-sm">← Назад</a>
+                        {% endif %}
+                        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                            {% if page_num %}
+                                {% if page_num == pagination.page %}
+                                    <span class="btn btn-primary btn-sm" style="pointer-events: none;">{{ page_num }}</span>
+                                {% else %}
+                                    {% set page_url = '/opportunities?page=' + page_num|string %}
+                                    {% if current_category %}{% set page_url = page_url + '&category=' + current_category %}{% endif %}
+                                    {% if current_search %}{% set page_url = page_url + '&search=' + current_search %}{% endif %}
+                                    {% if verified_only %}{% set page_url = page_url + '&verified=on' %}{% endif %}
+                                    {% if with_deadline %}{% set page_url = page_url + '&deadline=on' %}{% endif %}
+                                    {% if sort %}{% set page_url = page_url + '&sort=' + sort %}{% endif %}
+                                    <a href="{{ page_url }}" class="btn btn-secondary btn-sm">{{ page_num }}</a>
+                                {% endif %}
+                            {% else %}
+                                <span class="btn btn-secondary btn-sm" style="pointer-events: none; opacity: 0.5;">...</span>
+                            {% endif %}
+                        {% endfor %}
+                        {% if pagination.has_next %}
+                            {% set next_url = '/opportunities?page=' + pagination.next_num|string %}
+                            {% if current_category %}{% set next_url = next_url + '&category=' + current_category %}{% endif %}
+                            {% if current_search %}{% set next_url = next_url + '&search=' + current_search %}{% endif %}
+                            {% if verified_only %}{% set next_url = next_url + '&verified=on' %}{% endif %}
+                            {% if with_deadline %}{% set next_url = next_url + '&deadline=on' %}{% endif %}
+                            {% if sort %}{% set next_url = next_url + '&sort=' + sort %}{% endif %}
+                            <a href="{{ next_url }}" class="btn btn-secondary btn-sm">Вперёд →</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">📋</div>
+                <h3>Пока нет возможностей</h3>
+                <p class="text-muted">Будьте первым, кто добавит возможность для сообщества</p>
+                <a href="/add-opportunity" class="btn btn-primary mt-3">Добавить возможность</a>
+            </div>
+        {% endif %}
+
+        <a href="/" class="back-link">На главную</a>
     </div>
-
-</div>
-
-</body>
-</html>
+{% endblock %}

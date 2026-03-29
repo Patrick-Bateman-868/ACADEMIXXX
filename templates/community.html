@@ -1,30 +1,44 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Community — Gold Students Club</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-<h2>Community Groups</h2>
+{% block title %}Сообщество — Gold Students Club{% endblock %}
 
-<p>
-Участники клуба объединяются в профессиональные группы
-по направлениям и интересам.
-</p>
+{% block content %}
+    <div class="container">
+        <div class="page-header">
+            <h1>Сообщество</h1>
+            <p class="subtitle">Группы по интересам и направлениям</p>
+        </div>
 
-<ul>
-    <li><b>AI & Data Science</b> — исследования, проекты</li>
-    <li><b>Research & Academia</b> — публикации, гранты</li>
-    <li><b>Entrepreneurship</b> — стартапы, бизнес</li>
-    <li><b>Scholarships Abroad</b> — обучение за рубежом</li>
-</ul>
+        {% if groups %}
+            <div class="grid grid-2">
+                {% for g in groups %}
+                    <div class="card">
+                        <h3 class="card-title">
+                            <a href="{{ url_for('community_group', group_id=g.id) }}">{{ g.name }}</a>
+                        </h3>
+                        <p class="card-text">{{ g.description or '' }}</p>
+                        <div class="card-footer">
+                            {% if g.id in member_ids %}
+                                <span class="badge badge-success">Вы в группе</span>
+                            {% endif %}
+                            <a href="{{ url_for('community_group', group_id=g.id) }}" class="btn btn-outline btn-sm">Подробнее →</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p class="text-muted">Группы пока не созданы.</p>
+            </div>
+        {% endif %}
 
-<p style="color:gray;">
-Доступ к группам открывается после одобрения профиля.
-</p>
+        <div class="card mt-4" style="background: var(--gray-100); border: 1px solid var(--gold-light);">
+            <p class="text-muted text-center">
+                <strong>Доступ к группам</strong><br>
+                Вступить в группу могут участники с заполненным профилем.
+            </p>
+        </div>
 
-<a href="/">← На главную</a>
-
-</body>
-</html>
+        <a href="/" class="back-link">← На главную</a>
+    </div>
+{% endblock %}

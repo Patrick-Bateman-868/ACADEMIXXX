@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}{{ group.name }} — Gold Students Club{% endblock %}
+
+{% block content %}
+    <div class="container-narrow">
+        <div class="card">
+            <h1 class="card-title">{{ group.name }}</h1>
+            {% if group.category %}<p class="text-muted">{{ group.category }}</p>{% endif %}
+            <p class="card-text">{{ group.description or 'Описание группы.' }}</p>
+            <p class="text-muted">Участников: {{ members_count }}</p>
+            <div class="card-footer">
+                {% if current_user.is_authenticated %}
+                    {% if is_member %}
+                        <form method="post" action="{{ url_for('community_leave', group_id=group.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-secondary">Выйти из группы</button>
+                        </form>
+                    {% else %}
+                        <form method="post" action="{{ url_for('community_join', group_id=group.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-primary">Вступить</button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted">Войдите, чтобы вступить в группу.</p>
+                {% endif %}
+                <a href="{{ url_for('community') }}" class="back-link">← К сообществу</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

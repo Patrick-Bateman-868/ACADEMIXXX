@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.name }} — Gold Students Club{% endblock %}
+
+{% block content %}
+    <div class="container-narrow">
+        <div class="card">
+            <h1 class="card-title">{{ user.name }}</h1>
+            <p class="text-muted">{{ user.email }}</p>
+            <div class="card-subtitle">
+                {% if user.university %}<span>🎓 {{ user.university }}</span>{% endif %}
+                {% if user.country %}<span>🌍 {{ user.country }}</span>{% endif %}
+                {% if user.status == "verified" %}<span class="badge badge-success">✓ Verified</span>{% endif %}
+            </div>
+            {% if user.skills %}
+                <h4 class="mt-4">Навыки</h4>
+                <p class="card-text">{{ user.skills }}</p>
+            {% endif %}
+            {% if user.interests %}
+                <h4>Интересы</h4>
+                <p class="card-text">{{ user.interests }}</p>
+            {% endif %}
+            {% if user.goals %}
+                <h4>Цели</h4>
+                <p class="card-text">{{ user.goals }}</p>
+            {% endif %}
+            {% if user.links %}
+                <h4>Ссылки</h4>
+                <p class="card-text">{{ user.links }}</p>
+            {% endif %}
+            <div class="card-footer">
+                {% if current_user.is_authenticated and current_user.id == user.id %}
+                    <a href="{{ url_for('profile') }}" class="btn btn-primary">Редактировать профиль</a>
+                {% endif %}
+                <a href="{{ url_for('profiles') }}" class="back-link">← К каталогу</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

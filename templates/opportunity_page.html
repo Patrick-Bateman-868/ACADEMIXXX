@@ -1,34 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<h2>{{ op.title }}</h2>
+{% extends "base.html" %}
 
-<p>{{ op.description }}</p>
+{% block title %}{{ op.title }} — Gold Students Club{% endblock %}
 
-<p><b>Category:</b> {{ op.category }}</p>
-<p><b>Deadline:</b> {{ op.deadline }}</p>
+{% block content %}
+    <div class="container-narrow">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">{{ op.title }}</h1>
+                <div class="card-subtitle">
+                    <span class="category-tag">{{ op.category }}</span>
+                    {% if op.verified %}
+                        <span class="badge badge-success">✓ Verified</span>
+                    {% else %}
+                        <span class="badge badge-warning">Pending verification</span>
+                    {% endif %}
+                </div>
+            </div>
 
-{% if op.verified %}
-    <span style="color:green;">Verified</span>
-{% else %}
-    <span style="color:gray;">Pending verification</span>
-{% endif %}
+            <div class="card-text">
+                <h4>Описание</h4>
+                <p>{{ op.description or '—' }}</p>
+                {% if op.requirements %}
+                    <h4 class="mt-3">Требования</h4>
+                    <p>{{ op.requirements }}</p>
+                {% endif %}
+                {% if op.source %}
+                    <p class="mt-2"><strong>Источник / партнёр:</strong> {{ op.source }}</p>
+                {% endif %}
+            </div>
 
-<hr>
+            <div class="card-footer" style="flex-direction: column; align-items: flex-start; gap: var(--spacing-md);">
+                <div style="width: 100%;">
+                    {% if op.deadline %}<p><strong>Дедлайн:</strong> {{ op.deadline }}</p>{% endif %}
+                </div>
 
-<h4>Apply for this opportunity</h4>
+                <hr style="width: 100%; border: none; border-top: 1px solid var(--gray-200); margin: var(--spacing-md) 0;">
 
-<form method="post">
-    <input type="email" name="email" placeholder="Your email" required>
-    <br><br>
-    <button type="submit">Apply</button>
-</form>
+                <div style="width: 100%;">
+                    <h4 style="margin-bottom: var(--spacing-md);">Подать заявку</h4>
+                    <form method="post">
+                        <div class="form-group">
+                            <label class="form-label">Ваш email *</label>
+                            <input type="email" name="email" class="form-control" placeholder="your.email@example.com" value="{% if current_user.is_authenticated %}{{ current_user.email }}{% endif %}" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">
+                            Подать заявку
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
 
-<a href="/opportunities">← Back</a>
-
-</body>
-</html>
+        <a href="/opportunities" class="back-link">← Назад к возможностям</a>
+    </div>
+{% endblock %}

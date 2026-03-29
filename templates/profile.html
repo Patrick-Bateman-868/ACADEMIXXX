@@ -1,65 +1,69 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Create Profile</title>
+{% extends "base.html" %}
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
+{% block title %}Мой профиль — Gold Students Club{% endblock %}
 
-<div class="container mt-5" style="max-width: 700px;">
+{% block content %}
+    <div class="page-header">
+        <h1>Мой профиль</h1>
+        <p class="subtitle">Расскажите о себе и своих целях</p>
+    </div>
 
-    <h2 class="mb-4 text-center">Student Profile</h2>
+    <div class="container-narrow">
+        <div class="card">
+            <p class="text-muted mb-3" style="font-size: var(--font-size-sm);">Вход: {{ user.email }}</p>
+            <form method="post">
+                <div class="form-group">
+                    <label class="form-label">Имя *</label>
+                    <input type="text" name="name" class="form-control" 
+                           placeholder="Ваше имя" 
+                           value="{% if user %}{{ user.name }}{% endif %}"
+                           required>
+                </div>
 
-    <form method="post">
+                <div class="form-group">
+                    <label class="form-label">Университет</label>
+                    <input type="text" name="university" class="form-control" 
+                           placeholder="Название университета"
+                           value="{% if user %}{{ user.university or '' }}{% endif %}">
+                </div>
 
-        <div class="mb-3">
-            <label>Email *</label>
-            <input type="email" name="email" placeholder="Email" required><br><br>
+                <div class="form-group">
+                    <label class="form-label">Страна</label>
+                    <input type="text" name="country" class="form-control" 
+                           placeholder="Страна обучения"
+                           value="{% if user %}{{ user.country or '' }}{% endif %}">
+                </div>
 
+                <div class="form-group">
+                    <label class="form-label">Навыки</label>
+                    <textarea name="skills" class="form-control" placeholder="Python, Machine Learning, Research, Design...">{% if user %}{{ user.skills or '' }}{% endif %}</textarea>
+                    <small class="text-muted">Перечислите ваши основные навыки через запятую</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Цели</label>
+                    <textarea name="goals" class="form-control" placeholder="Опишите ваши профессиональные и академические цели">{% if user %}{{ user.goals or '' }}{% endif %}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Интересы</label>
+                    <input type="text" name="interests" class="form-control" 
+                           placeholder="AI, Research, Entrepreneurship..."
+                           value="{% if user %}{{ user.interests or '' }}{% endif %}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ссылки</label>
+                    <input type="text" name="links" class="form-control" 
+                           placeholder="LinkedIn, GitHub, Portfolio..."
+                           value="{% if user %}{{ user.links or '' }}{% endif %}">
+                    <small class="text-muted">Разделите ссылки запятой</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg">Сохранить</button>
+            </form>
         </div>
 
-        <div class="mb-3">
-            <label>Name *</label>
-            <input name="name" class="form-control" required>
-        </div>
-
-        <div class="mb-3">
-            <label>University</label>
-            <input name="university" class="form-control">
-        </div>
-
-        <div class="mb-3">
-            <label>Country</label>
-            <input name="country" class="form-control">
-        </div>
-
-        <div class="mb-3">
-            <label>Skills</label>
-            <textarea name="skills" class="form-control"></textarea>
-        </div>
-
-        <div class="mb-3">
-            <label>Goals</label>
-            <textarea name="goals" class="form-control"></textarea>
-        </div>
-
-        <div class="mb-3">
-            <label>Interests</label>
-            <input name="interests" class="form-control">
-        </div>
-
-        <div class="mb-3">
-            <label>Links</label>
-            <input name="links" class="form-control">
-        </div>
-
-        <button class="btn btn-dark w-100">Save Profile</button>
-
-    </form>
-
-</div>
-
-</body>
-</html>
+        <a href="{{ url_for('profiles') }}" class="back-link">К каталогу студентов</a>
+    </div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Админ-панель — Gold Students Club{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Админ-панель</h1>
+        <p class="text-muted">Модерация пользователей и возможностей</p>
+
+        <h2 class="mt-4">Пользователи</h2>
+        <div class="card mb-4">
+            <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--gray-200); text-align: left;">
+                        <th style="padding: var(--spacing-sm);">Email</th>
+                        <th style="padding: var(--spacing-sm);">Имя</th>
+                        <th style="padding: var(--spacing-sm);">Статус</th>
+                        <th style="padding: var(--spacing-sm);">Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                        <tr style="border-bottom: 1px solid var(--gray-200);">
+                            <td style="padding: var(--spacing-sm);">{{ u.email }}</td>
+                            <td style="padding: var(--spacing-sm);">{{ u.name }}</td>
+                            <td style="padding: var(--spacing-sm);">
+                                {% if u.status == "verified" %}<span class="badge badge-success">✓</span>
+                                {% else %}<span class="badge badge-warning">pending</span>{% endif %}
+                            </td>
+                            <td style="padding: var(--spacing-sm);">
+                                {% if u.status != "verified" %}
+                                    <form method="post" action="{{ url_for('admin_user_verify', user_id=u.id) }}" style="display: inline;">
+                                        <button type="submit" class="btn btn-primary btn-sm">Верифицировать</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h2>Возможности</h2>
+        <div class="card">
+            <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--gray-200); text-align: left;">
+                        <th style="padding: var(--spacing-sm);">Название</th>
+                        <th style="padding: var(--spacing-sm);">Категория</th>
+                        <th style="padding: var(--spacing-sm);">Статус</th>
+                        <th style="padding: var(--spacing-sm);">Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for op in opportunities %}
+                        <tr style="border-bottom: 1px solid var(--gray-200);">
+                            <td style="padding: var(--spacing-sm);"><a href="{{ url_for('opportunity_page', op_id=op.id) }}">{{ op.title }}</a></td>
+                            <td style="padding: var(--spacing-sm);">{{ op.category }}</td>
+                            <td style="padding: var(--spacing-sm);">
+                                {% if op.verified %}<span class="badge badge-success">✓</span>
+                                {% else %}<span class="badge badge-warning">pending</span>{% endif %}
+                            </td>
+                            <td style="padding: var(--spacing-sm);">
+                                {% if not op.verified %}
+                                    <form method="post" action="{{ url_for('admin_opportunity_verify', op_id=op.id) }}" style="display: inline;">
+                                        <button type="submit" class="btn btn-primary btn-sm">Верифицировать</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <a href="/" class="back-link mt-4">← На главную</a>
+    </div>
+{% endblock %}

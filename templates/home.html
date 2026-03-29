@@ -1,48 +1,63 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Gold Students Club</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-<nav class="top-nav">
-    <a href="/">Home</a>
-    <a href="/opportunities">Opportunities</a>
-    <a href="/community">Community</a>
-    <a href="/profiles">Members</a>
-</nav>
+{% extends "base.html" %}
 
-<header>
-    <h1>Gold Students Club</h1>
+{% block title %}Gold Students Club{% endblock %}
 
-    <p class="subtitle">
-        Закрытое международное сообщество<br>
-        выдающихся студентов и проверенных возможностей
-    </p>
+{% block content %}
+    <div class="hero">
+        <h1>Gold Students Club</h1>
+        <p class="subtitle">
+            Закрытое международное сообщество<br>
+            выдающихся студентов и проверенных возможностей
+        </p>
 
-    <div class="buttons">
+        <div class="button-group">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('profile') }}" class="btn btn-primary btn-lg">Мой профиль</a>
+            {% else %}
+                <a href="{{ url_for('signup') }}" class="btn btn-primary btn-lg">Подать заявку в клуб</a>
+            {% endif %}
+            <a href="/partners" class="btn btn-secondary btn-lg">
+                Для организаций
+            </a>
+        </div>
 
-        <!-- Студент -->
-        <a href="/profile">
-            <button class="primary">
-                Подать заявку в клуб
-            </button>
-        </a>
-
-        <!-- Организация -->
-        <a href="/partners">
-            <button class="secondary">
-                Для организаций и партнёров
-            </button>
-        </a>
-
+        <p class="note">
+            Все профили и возможности проходят модерацию
+        </p>
     </div>
 
-    <p class="note">
-        Все профили и возможности проходят модерацию.
-    </p>
-</header>
-
-</body>
-</html>
+    <!-- Статистика -->
+    {% if stats %}
+        <div class="container">
+            <div class="grid grid-3" style="margin-top: var(--spacing-xl);">
+                <div class="card text-center">
+                    <div style="font-size: var(--font-size-4xl); margin-bottom: var(--spacing-sm);">👥</div>
+                    <h2 style="margin-bottom: var(--spacing-xs);">{{ stats.total_users }}</h2>
+                    <p class="text-muted">Студентов в клубе</p>
+                    {% if stats.verified_users > 0 %}
+                        <p style="font-size: var(--font-size-sm); color: var(--gold-dark); margin-top: var(--spacing-xs);">
+                            {{ stats.verified_users }} верифицированных
+                        </p>
+                    {% endif %}
+                </div>
+                
+                <div class="card text-center">
+                    <div style="font-size: var(--font-size-4xl); margin-bottom: var(--spacing-sm);">🎯</div>
+                    <h2 style="margin-bottom: var(--spacing-xs);">{{ stats.total_opportunities }}</h2>
+                    <p class="text-muted">Возможностей</p>
+                    {% if stats.verified_opportunities > 0 %}
+                        <p style="font-size: var(--font-size-sm); color: var(--gold-dark); margin-top: var(--spacing-xs);">
+                            {{ stats.verified_opportunities }} проверенных
+                        </p>
+                    {% endif %}
+                </div>
+                
+                <div class="card text-center">
+                    <div style="font-size: var(--font-size-4xl); margin-bottom: var(--spacing-sm);">📝</div>
+                    <h2 style="margin-bottom: var(--spacing-xs);">{{ stats.total_applications }}</h2>
+                    <p class="text-muted">Подано заявок</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

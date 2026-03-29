@@ -4,21 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5528a1a4-9a29-44f3-9b6b-f9f6581b2b32" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/PythonProject6.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/style.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/add_opportunity.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/community.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/home.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/opportunities.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/opportunity_page.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/partners.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/profile.html" afterDir="false" />
+    <list default="true" id="5528a1a4-9a29-44f3-9b6b-f9f6581b2b32" name="Changes" comment="ACADEMIXXX">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/instance/students.db" beforeDir="false" afterPath="$PROJECT_DIR$/instance/students.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/style.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/add_opportunity.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/add_opportunity.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/community.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/community.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/home.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/home.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/opportunities.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/opportunities.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/opportunity_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/opportunity_page.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/partners.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/partners.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/profile.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/profile.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,11 +31,29 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="PUSH_TAGS">
+      <GitPushTagMode>
+        <option name="argument" value="--tags" />
+        <option name="title" value="All" />
+      </GitPushTagMode>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 1
-}]]></component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Patrick-Bateman-868&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Patrick-Bateman-868/ACADEMIXXX.git&quot;,
+    &quot;accountId&quot;: &quot;9fa48e43-0706-4ac2-a195-8778ae4fa539&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
   <component name="ProjectId" id="38ceI36R1ZjwjxfaNk0CxC8klsa" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -55,7 +70,10 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master"
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "master",
+    "junie.onboarding.icon.badge.shown": "true",
+    "to.speed.mode.migration.done": "true"
   }
 }]]></component>
   <component name="SharedIndexes">
@@ -73,6 +91,19 @@
       <option name="presentableId" value="Default" />
       <updated>1769103202882</updated>
     </task>
+    <task id="LOCAL-00001" summary="ACADEMIXXX">
+      <option name="closed" value="true" />
+      <created>1769104159499</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1769104159499</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="ACADEMIXXX" />
+    <option name="LAST_COMMIT_MESSAGE" value="ACADEMIXXX" />
   </component>
 </project>

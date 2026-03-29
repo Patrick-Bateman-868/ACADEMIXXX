@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Вход — Gold Students Club{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <h1>Вход</h1>
+        <p class="subtitle">Войдите в свой аккаунт</p>
+    </div>
+
+    <div class="container-narrow">
+        <div class="card">
+            <form method="post">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" placeholder="your@email.com" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Пароль</label>
+                    <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block btn-lg">Войти</button>
+            </form>
+        </div>
+        <p class="text-center mt-3 text-muted">
+            Нет аккаунта? <a href="{{ url_for('signup') }}">Присоединиться</a>
+        </p>
+    </div>
+{% endblock %}
