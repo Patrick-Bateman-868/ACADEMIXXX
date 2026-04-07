@@ -1,4 +1,4 @@
-# 🏗️ Архитектура Gold Students Club
+# Архитектура Gold Students Club
 
 ## Текущая архитектура
 

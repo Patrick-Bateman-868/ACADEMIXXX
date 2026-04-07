@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Создать сообщество — Gold Students Club{% endblock %}
+
+{% block content %}
+<div style="min-height: 80vh; display: flex; align-items: flex-start; justify-content: center; padding: var(--spacing-xl) var(--spacing-lg);">
+    <div style="width: 100%; max-width: 560px;">
+
+        <div style="margin-bottom: var(--spacing-xl);">
+            <h1 style="margin-bottom: 8px;">Создать сообщество</h1>
+            <p style="color: var(--gray-500); margin: 0; font-size: var(--font-size-sm);">
+                Объедините студентов по интересам или направлению
+            </p>
+        </div>
+
+        <div class="card" style="padding: var(--spacing-xl);">
+            <form method="post">
+
+                <div class="form-group">
+                    <label class="form-label">Название <span style="color:var(--gold);">*</span></label>
+                    <input type="text" name="name" class="form-control"
+                           placeholder="Например: Climate & Sustainability" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Направление / Категория</label>
+                    <select name="category" class="form-select">
+                        <option value="">Выберите направление</option>
+                        {% for cat in ["Технологии", "Наука", "Бизнес", "Образование", "Культура", "Спорт", "Экология", "Другое"] %}
+                            <option value="{{ cat }}">{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                    <label class="form-label">Описание</label>
+                    <textarea name="description" class="form-control" rows="4"
+                              placeholder="О чём это сообщество? Кому оно будет полезно?"></textarea>
+                </div>
+
+                <div style="display: flex; gap: var(--spacing-sm);">
+                    <button type="submit" class="btn btn-primary btn-lg" style="flex: 1;">Создать сообщество</button>
+                    <a href="{{ url_for('organizer_dashboard') }}" class="btn btn-secondary btn-lg">Отмена</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,60 +1,89 @@
 {% extends "base.html" %}
 
-{% block title %}Добавить возможность — Gold Students Club{% endblock %}
+{% block title %}{% if edit %}Редактировать{% else %}Добавить{% endif %} возможность — Gold Students Club{% endblock %}
 
 {% block content %}
-    <div class="page-header">
-        <h1>Добавить возможность</h1>
-        <p class="subtitle">Поделитесь проверенной возможностью с сообществом</p>
-    </div>
+<div style="min-height: 80vh; display: flex; align-items: flex-start; justify-content: center; padding: var(--spacing-xl) var(--spacing-lg);">
+    <div style="width: 100%; max-width: 680px;">
 
-    <div class="container-narrow">
-        <div class="card">
+        <div style="margin-bottom: var(--spacing-xl);">
+            <h1 style="margin-bottom: 8px;">
+                {% if edit %}Редактировать возможность{% else %}Добавить возможность{% endif %}
+            </h1>
+            <p style="color: var(--gray-500); margin: 0; font-size: var(--font-size-sm);">
+                {% if edit %}Обновите информацию — после сохранения возможность будет повторно проверена.
+                {% else %}Заполните форму. После модерации возможность появится в каталоге.{% endif %}
+            </p>
+        </div>
+
+        <div class="card" style="padding: var(--spacing-xl);">
             <form method="post">
-                <div class="form-group">
-                    <label class="form-label">Название *</label>
-                    <input type="text" name="title" class="form-control" placeholder="Название гранта, стажировки или проекта" required>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Название <span style="color:var(--gold);">*</span></label>
+                        <input type="text" name="title" class="form-control"
+                               placeholder="Название конкурса, стажировки или гранта"
+                               value="{{ op.title if op else '' }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Категория <span style="color:var(--gold);">*</span></label>
+                        <select name="category" class="form-select" required>
+                            <option value="">Выберите категорию</option>
+                            {% for cat in ["Грант", "Стажировка", "Конкурс", "Проект", "Ментор", "Обмен", "Другое"] %}
+                                <option value="{{ cat }}"
+                                    {% if op and op.category == cat %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Дедлайн</label>
+                        <input type="text" name="deadline" class="form-control"
+                               placeholder="15 марта 2026"
+                               value="{{ op.deadline if op and op.deadline else '' }}">
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Описание</label>
+                        <textarea name="description" class="form-control" rows="4"
+                                  placeholder="Подробное описание возможности, условия участия...">{{ op.description if op and op.description else '' }}</textarea>
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Требования к участникам</label>
+                        <textarea name="requirements" class="form-control" rows="3"
+                                  placeholder="GPA, курс, специальность, язык...">{{ op.requirements if op and op.requirements else '' }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Источник / организация</label>
+                        <input type="text" name="source" class="form-control"
+                               placeholder="Название организации"
+                               value="{{ op.source if op and op.source else '' }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Ссылка на регистрацию</label>
+                        <input type="url" name="registration_link" class="form-control"
+                               placeholder="https://example.com/apply"
+                               value="{{ op.registration_link if op and op.registration_link else '' }}">
+                        <small style="color: var(--gray-600); font-size: var(--font-size-xs);">Внешняя ссылка для подачи заявки</small>
+                    </div>
+
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Категория *</label>
-                    <select name="category" class="form-select" required>
-                        <option value="">Выберите категорию</option>
-                        <option value="Grant">Грант</option>
-                        <option value="Internship">Стажировка</option>
-                        <option value="Project">Проект / Работа</option>
-                        <option value="Mentor">Ментор</option>
-                        <option value="Housing">Жильё</option>
-                    </select>
+                <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-sm);">
+                    <button type="submit" class="btn btn-primary btn-lg" style="flex: 1;">
+                        {% if edit %}Сохранить изменения{% else %}Отправить на модерацию{% endif %}
+                    </button>
+                    <a href="{{ url_for('organizer_dashboard') }}" class="btn btn-secondary btn-lg">Отмена</a>
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label">Описание</label>
-                    <textarea name="description" class="form-control" rows="4" placeholder="Подробное описание возможности"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Требования</label>
-                    <textarea name="requirements" class="form-control" rows="3" placeholder="Требования к кандидатам"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Источник / партнёр</label>
-                    <input type="text" name="source" class="form-control" placeholder="Организация или контакт">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Дедлайн</label>
-                    <input type="text" name="deadline" class="form-control" placeholder="15 марта 2026">
-                    <small class="text-muted">Укажите дату дедлайна подачи заявки</small>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-block btn-lg">
-                    Отправить на модерацию
-                </button>
             </form>
         </div>
 
-        <a href="/opportunities" class="back-link">← Назад к возможностям</a>
     </div>
+</div>
 {% endblock %}

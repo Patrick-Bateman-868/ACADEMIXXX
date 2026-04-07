@@ -12,7 +12,7 @@
         </div>
 
         <!-- Фильтры и поиск -->
-        <div class="card mb-4" style="background: var(--white);">
+        <div class="filter-card">
             <form method="GET" action="/profiles" class="filter-form">
                 <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: var(--spacing-md); align-items: end;">
                     <div class="form-group" style="margin-bottom: 0;">
@@ -75,27 +75,21 @@
                         <div class="card-text">
                             {% if student.skills %}
                                 <div style="margin-bottom: var(--spacing-sm);">
-                                    <strong style="font-size: var(--font-size-sm); color: var(--gray-600);">Навыки:</strong>
-                                    <p style="font-size: var(--font-size-sm); margin-top: var(--spacing-xs);">
-                                        {{ student.skills[:100] }}{% if student.skills|length > 100 %}...{% endif %}
-                                    </p>
-                                </div>
-                            {% endif %}
-                            {% if student.interests %}
-                                <div style="margin-bottom: var(--spacing-sm);">
-                                    <strong style="font-size: var(--font-size-sm); color: var(--gray-600);">Интересы:</strong>
-                                    <p style="font-size: var(--font-size-sm); margin-top: var(--spacing-xs);">
-                                        {{ student.interests }}
-                                    </p>
+                                    <div class="skill-tags">
+                                        {% for skill in student.skills.split(',')[:5] %}
+                                            {% set s = skill.strip() %}
+                                            {% if s %}<span class="skill-tag">{{ s }}</span>{% endif %}
+                                        {% endfor %}
+                                        {% if student.skills.split(',')|length > 5 %}
+                                            <span class="skill-tag" style="opacity:0.5;">+{{ student.skills.split(',')|length - 5 }}</span>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             {% endif %}
                             {% if student.goals %}
-                                <div>
-                                    <strong style="font-size: var(--font-size-sm); color: var(--gray-600);">Цели:</strong>
-                                    <p style="font-size: var(--font-size-sm); margin-top: var(--spacing-xs);">
-                                        {{ student.goals[:150] }}{% if student.goals|length > 150 %}...{% endif %}
-                                    </p>
-                                </div>
+                                <p style="font-size: var(--font-size-sm); margin-top: var(--spacing-xs); margin-bottom: 0; color: var(--gray-400);">
+                                    {{ student.goals[:120] }}{% if student.goals|length > 120 %}…{% endif %}
+                                </p>
                             {% endif %}
                         </div>
                         <div class="card-footer">

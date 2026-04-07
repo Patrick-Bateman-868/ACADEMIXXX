@@ -3,27 +3,39 @@
 {% block title %}Вход — Gold Students Club{% endblock %}
 
 {% block content %}
-    <div class="page-header">
-        <h1>Вход</h1>
-        <p class="subtitle">Войдите в свой аккаунт</p>
-    </div>
+<div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: var(--spacing-xl) var(--spacing-lg);">
+    <div style="width: 100%; max-width: 420px;">
 
-    <div class="container-narrow">
-        <div class="card">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: var(--spacing-xl);">
+            <div style="font-size: 2.5rem; margin-bottom: var(--spacing-sm); line-height: 1;">
+                <span style="color: var(--gold); text-shadow: 0 0 20px var(--gold-glow);">★</span>
+            </div>
+            <h1 style="font-size: var(--font-size-3xl); margin-bottom: 8px;">Войти</h1>
+            <p style="color: var(--gray-500); margin: 0; font-size: var(--font-size-sm);">В ваш аккаунт Gold Students Club</p>
+        </div>
+
+        <!-- Card -->
+        <div class="card" style="padding: var(--spacing-xl);">
             <form method="post">
                 <div class="form-group">
                     <label class="form-label">Email</label>
-                    <input type="email" name="email" class="form-control" placeholder="your@email.com" required autofocus>
+                    <input type="email" name="email" class="form-control"
+                           placeholder="your@email.com" required autofocus>
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: var(--spacing-lg);">
                     <label class="form-label">Пароль</label>
-                    <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                    <input type="password" name="password" class="form-control"
+                           placeholder="••••••••" required>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block btn-lg">Войти</button>
             </form>
         </div>
-        <p class="text-center mt-3 text-muted">
-            Нет аккаунта? <a href="{{ url_for('signup') }}">Присоединиться</a>
+
+        <p class="text-center mt-3" style="color: var(--gray-500); font-size: var(--font-size-sm);">
+            Нет аккаунта? <a href="{{ url_for('signup') }}" style="color: var(--gold);">Присоединиться</a>
         </p>
+
     </div>
+</div>
 {% endblock %}

@@ -3,67 +3,80 @@
 {% block title %}Мой профиль — Gold Students Club{% endblock %}
 
 {% block content %}
-    <div class="page-header">
-        <h1>Мой профиль</h1>
-        <p class="subtitle">Расскажите о себе и своих целях</p>
-    </div>
+<div style="min-height: 80vh; display: flex; align-items: flex-start; justify-content: center; padding: var(--spacing-xl) var(--spacing-lg);">
+    <div style="width: 100%; max-width: 640px;">
 
-    <div class="container-narrow">
-        <div class="card">
-            <p class="text-muted mb-3" style="font-size: var(--font-size-sm);">Вход: {{ user.email }}</p>
+        <!-- Header -->
+        <div style="margin-bottom: var(--spacing-xl);">
+            <h1 style="margin-bottom: 8px;">Мой профиль</h1>
+            <p style="color: var(--gray-500); margin: 0; font-size: var(--font-size-sm);">
+                Вход как <span style="color: var(--gold-dark);">{{ user.email }}</span>
+            </p>
+        </div>
+
+        <div class="card" style="padding: var(--spacing-xl);">
             <form method="post">
-                <div class="form-group">
-                    <label class="form-label">Имя *</label>
-                    <input type="text" name="name" class="form-control" 
-                           placeholder="Ваше имя" 
-                           value="{% if user %}{{ user.name }}{% endif %}"
-                           required>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Имя <span style="color: var(--gold);">*</span></label>
+                        <input type="text" name="name" class="form-control"
+                               placeholder="Ваше имя"
+                               value="{% if user %}{{ user.name }}{% endif %}"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Университет</label>
+                        <input type="text" name="university" class="form-control"
+                               placeholder="Название университета"
+                               value="{% if user %}{{ user.university or '' }}{% endif %}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Страна</label>
+                        <input type="text" name="country" class="form-control"
+                               placeholder="Страна обучения"
+                               value="{% if user %}{{ user.country or '' }}{% endif %}">
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Навыки</label>
+                        <textarea name="skills" class="form-control"
+                                  placeholder="Python, Machine Learning, Design...">{% if user %}{{ user.skills or '' }}{% endif %}</textarea>
+                        <small style="color: var(--gray-600); font-size: var(--font-size-xs);">Перечислите через запятую</small>
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Цели</label>
+                        <textarea name="goals" class="form-control"
+                                  placeholder="Опишите ваши профессиональные и академические цели">{% if user %}{{ user.goals or '' }}{% endif %}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Интересы</label>
+                        <input type="text" name="interests" class="form-control"
+                               placeholder="AI, Research, Entrepreneurship..."
+                               value="{% if user %}{{ user.interests or '' }}{% endif %}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Ссылки</label>
+                        <input type="text" name="links" class="form-control"
+                               placeholder="LinkedIn, GitHub..."
+                               value="{% if user %}{{ user.links or '' }}{% endif %}">
+                        <small style="color: var(--gray-600); font-size: var(--font-size-xs);">Через запятую</small>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Университет</label>
-                    <input type="text" name="university" class="form-control" 
-                           placeholder="Название университета"
-                           value="{% if user %}{{ user.university or '' }}{% endif %}">
+                <div style="margin-top: var(--spacing-md);">
+                    <button type="submit" class="btn btn-primary btn-block btn-lg">Сохранить изменения</button>
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label">Страна</label>
-                    <input type="text" name="country" class="form-control" 
-                           placeholder="Страна обучения"
-                           value="{% if user %}{{ user.country or '' }}{% endif %}">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Навыки</label>
-                    <textarea name="skills" class="form-control" placeholder="Python, Machine Learning, Research, Design...">{% if user %}{{ user.skills or '' }}{% endif %}</textarea>
-                    <small class="text-muted">Перечислите ваши основные навыки через запятую</small>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Цели</label>
-                    <textarea name="goals" class="form-control" placeholder="Опишите ваши профессиональные и академические цели">{% if user %}{{ user.goals or '' }}{% endif %}</textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Интересы</label>
-                    <input type="text" name="interests" class="form-control" 
-                           placeholder="AI, Research, Entrepreneurship..."
-                           value="{% if user %}{{ user.interests or '' }}{% endif %}">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Ссылки</label>
-                    <input type="text" name="links" class="form-control" 
-                           placeholder="LinkedIn, GitHub, Portfolio..."
-                           value="{% if user %}{{ user.links or '' }}{% endif %}">
-                    <small class="text-muted">Разделите ссылки запятой</small>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-block btn-lg">Сохранить</button>
             </form>
         </div>
 
         <a href="{{ url_for('profiles') }}" class="back-link">К каталогу студентов</a>
+
     </div>
+</div>
 {% endblock %}

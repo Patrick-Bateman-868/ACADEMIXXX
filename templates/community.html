@@ -3,42 +3,86 @@
 {% block title %}Сообщество — Gold Students Club{% endblock %}
 
 {% block content %}
-    <div class="container">
-        <div class="page-header">
-            <h1>Сообщество</h1>
-            <p class="subtitle">Группы по интересам и направлениям</p>
-        </div>
+<div class="container">
 
-        {% if groups %}
-            <div class="grid grid-2">
-                {% for g in groups %}
-                    <div class="card">
-                        <h3 class="card-title">
-                            <a href="{{ url_for('community_group', group_id=g.id) }}">{{ g.name }}</a>
-                        </h3>
-                        <p class="card-text">{{ g.description or '' }}</p>
-                        <div class="card-footer">
-                            {% if g.id in member_ids %}
-                                <span class="badge badge-success">Вы в группе</span>
-                            {% endif %}
-                            <a href="{{ url_for('community_group', group_id=g.id) }}" class="btn btn-outline btn-sm">Подробнее →</a>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="empty-state">
-                <p class="text-muted">Группы пока не созданы.</p>
-            </div>
-        {% endif %}
-
-        <div class="card mt-4" style="background: var(--gray-100); border: 1px solid var(--gold-light);">
-            <p class="text-muted text-center">
-                <strong>Доступ к группам</strong><br>
-                Вступить в группу могут участники с заполненным профилем.
+    <div class="flex-between mb-4" style="padding-top: var(--spacing-md);">
+        <div>
+            <h1 style="margin-bottom: 8px;">Сообщества</h1>
+            <p style="color: var(--gray-500); margin: 0; font-size: var(--font-size-sm);">
+                Группы по интересам и направлениям
             </p>
         </div>
-
-        <a href="/" class="back-link">← На главную</a>
+        {% if current_user.is_authenticated and current_user.is_organizer %}
+            <a href="{{ url_for('create_community') }}" class="btn btn-primary">+ Создать сообщество</a>
+        {% endif %}
     </div>
+
+    {% if groups %}
+        <div class="grid grid-2">
+            {% for g in groups %}
+            <div class="card">
+                <div class="card-header">
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;">
+                        <h3 class="card-title" style="margin-bottom: 4px;">
+                            <a href="{{ url_for('community_group', group_id=g.id) }}">{{ g.name }}</a>
+                        </h3>
+                        {% if g.id in member_ids %}
+                            <span class="badge badge-success" style="flex-shrink: 0;">Вы в группе</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-subtitle">
+                        {% if g.category %}
+                            <span class="category-tag">{{ g.category }}</span>
+                        {% endif %}
+                        <span style="color: var(--gray-500); font-size: var(--font-size-xs);">
+                            👥 {{ member_counts.get(g.id, 0) }} участников
+                        </span>
+                    </div>
+                </div>
+                <p class="card-text">{{ g.description or 'Нет описания' }}</p>
+                <div class="card-footer">
+                    {% if g.creator %}
+                        <span style="font-size: var(--font-size-xs); color: var(--gray-600);">
+                            от {{ g.creator.name }}
+                        </span>
+                    {% else %}
+                        <span></span>
+                    {% endif %}
+                    <a href="{{ url_for('community_group', group_id=g.id) }}" class="btn btn-outline btn-sm">
+                        Подробнее →
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <span class="empty-state-icon">🏘</span>
+            <h3>Сообществ пока нет</h3>
+            <p class="text-muted">
+                {% if current_user.is_authenticated and current_user.is_organizer %}
+                    Создайте первое сообщество!
+                {% else %}
+                    Организаторы скоро создадут первые группы.
+                {% endif %}
+            </p>
+            {% if current_user.is_authenticated and current_user.is_organizer %}
+                <a href="{{ url_for('create_community') }}" class="btn btn-primary mt-3">Создать сообщество</a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if not current_user.is_authenticated %}
+    <div class="card mt-4" style="border-color: rgba(212,175,55,0.2); background: rgba(212,175,55,0.03); text-align: center; padding: var(--spacing-lg);">
+        <p style="color: var(--gray-400); margin-bottom: var(--spacing-md);">
+            Вступить в сообщество могут зарегистрированные участники
+        </p>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <a href="{{ url_for('signup') }}" class="btn btn-primary">Зарегистрироваться</a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary">Войти</a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
 {% endblock %}

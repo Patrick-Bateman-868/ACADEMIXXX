@@ -1,78 +1,370 @@
 {% extends "base.html" %}
 
-{% block title %}Админ-панель — Gold Students Club{% endblock %}
+{% block title %}Панель администратора — Gold Students Club{% endblock %}
 
 {% block content %}
-    <div class="container">
-        <h1>Админ-панель</h1>
-        <p class="text-muted">Модерация пользователей и возможностей</p>
+<div class="container">
 
-        <h2 class="mt-4">Пользователи</h2>
-        <div class="card mb-4">
-            <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+    <!-- Header -->
+    <div style="padding-top: var(--spacing-md); margin-bottom: var(--spacing-xl);">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+            <span style="font-size: 1.5rem;">⚙</span>
+            <h1 style="margin: 0;">Панель администратора</h1>
+        </div>
+        <p style="color: var(--gray-500); margin: 0; font-size: var(--font-size-sm);">
+            Управление пользователями, возможностями и сообществами
+        </p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="admin-tabs">
+        <a href="{{ url_for('admin', tab='overview') }}"
+           class="admin-tab {% if active_tab == 'overview' %}active{% endif %}">
+            Обзор
+        </a>
+        <a href="{{ url_for('admin', tab='users') }}"
+           class="admin-tab {% if active_tab == 'users' %}active{% endif %}">
+            Пользователи
+            {% if stats.pending_users > 0 %}
+                <span class="tab-badge">{{ stats.pending_users }}</span>
+            {% endif %}
+        </a>
+        <a href="{{ url_for('admin', tab='opportunities') }}"
+           class="admin-tab {% if active_tab == 'opportunities' %}active{% endif %}">
+            Возможности
+            {% if stats.pending_opportunities > 0 %}
+                <span class="tab-badge">{{ stats.pending_opportunities }}</span>
+            {% endif %}
+        </a>
+        <a href="{{ url_for('admin', tab='communities') }}"
+           class="admin-tab {% if active_tab == 'communities' %}active{% endif %}">
+            Сообщества
+        </a>
+    </div>
+
+    <!-- ======================== OVERVIEW ======================== -->
+    {% if active_tab == 'overview' %}
+    <div class="tab-content">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-xl);">
+
+            <div class="card text-center" style="padding: var(--spacing-lg);">
+                <div style="font-size: 2rem; font-weight: 900; color: var(--gold); margin-bottom: 4px;">{{ stats.total_users }}</div>
+                <div style="font-size: var(--font-size-sm); color: var(--gray-400);">Пользователей</div>
+                <div style="font-size: var(--font-size-xs); color: var(--gray-600); margin-top: 4px;">
+                    {{ stats.students }} студ. · {{ stats.organizers }} орг. · {{ stats.admins }} адм.
+                </div>
+            </div>
+
+            <div class="card text-center" style="padding: var(--spacing-lg);">
+                <div style="font-size: 2rem; font-weight: 900; color: {% if stats.pending_users > 0 %}#FFA726{% else %}var(--gold){% endif %}; margin-bottom: 4px;">
+                    {{ stats.pending_users }}
+                </div>
+                <div style="font-size: var(--font-size-sm); color: var(--gray-400);">Ожидают верификации</div>
+                {% if stats.banned_users > 0 %}
+                <div style="font-size: var(--font-size-xs); color: #EF5350; margin-top: 4px;">{{ stats.banned_users }} заблок.</div>
+                {% endif %}
+            </div>
+
+            <div class="card text-center" style="padding: var(--spacing-lg);">
+                <div style="font-size: 2rem; font-weight: 900; color: var(--gold); margin-bottom: 4px;">{{ stats.total_opportunities }}</div>
+                <div style="font-size: var(--font-size-sm); color: var(--gray-400);">Возможностей</div>
+                <div style="font-size: var(--font-size-xs); color: var(--gray-600); margin-top: 4px;">
+                    {{ stats.verified_opportunities }} верифиц. · {{ stats.pending_opportunities }} ожид.
+                </div>
+            </div>
+
+            <div class="card text-center" style="padding: var(--spacing-lg);">
+                <div style="font-size: 2rem; font-weight: 900; color: var(--gold); margin-bottom: 4px;">{{ stats.total_groups }}</div>
+                <div style="font-size: var(--font-size-sm); color: var(--gray-400);">Сообществ</div>
+            </div>
+
+            <div class="card text-center" style="padding: var(--spacing-lg);">
+                <div style="font-size: 2rem; font-weight: 900; color: var(--gold); margin-bottom: 4px;">{{ stats.total_applications }}</div>
+                <div style="font-size: var(--font-size-sm); color: var(--gray-400);">Заявок подано</div>
+            </div>
+
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg);">
+            <div>
+                <h3 style="margin-bottom: var(--spacing-md);">Быстрые действия</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <a href="{{ url_for('admin', tab='users') }}" class="btn btn-secondary" style="justify-content: flex-start; gap: 10px;">
+                        👥 Управление пользователями
+                        {% if stats.pending_users > 0 %}
+                            <span class="tab-badge" style="margin-left: auto;">{{ stats.pending_users }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('admin', tab='opportunities') }}" class="btn btn-secondary" style="justify-content: flex-start; gap: 10px;">
+                        📋 Модерация возможностей
+                        {% if stats.pending_opportunities > 0 %}
+                            <span class="tab-badge" style="margin-left: auto;">{{ stats.pending_opportunities }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('admin', tab='communities') }}" class="btn btn-secondary" style="justify-content: flex-start; gap: 10px;">
+                        🏘 Управление сообществами
+                    </a>
+                </div>
+            </div>
+            <div>
+                <h3 style="margin-bottom: var(--spacing-md);">Демо-аккаунты</h3>
+                <div class="card" style="padding: var(--spacing-md);">
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div style="padding: 10px 12px; background: var(--dark-light); border-radius: var(--radius-sm); border: 1px solid var(--dark-border);">
+                            <div style="font-size: var(--font-size-xs); color: var(--gray-500); margin-bottom: 3px;">СТУДЕНТ</div>
+                            <div style="font-size: var(--font-size-sm); color: var(--gray-200);">student@gsc.com / <code style="color: var(--gold);">student123</code></div>
+                        </div>
+                        <div style="padding: 10px 12px; background: var(--dark-light); border-radius: var(--radius-sm); border: 1px solid var(--dark-border);">
+                            <div style="font-size: var(--font-size-xs); color: var(--gold-dark); margin-bottom: 3px;">ОРГАНИЗАТОР</div>
+                            <div style="font-size: var(--font-size-sm); color: var(--gray-200);">organizer@gsc.com / <code style="color: var(--gold);">organizer123</code></div>
+                        </div>
+                        <div style="padding: 10px 12px; background: var(--dark-light); border-radius: var(--radius-sm); border: 1px solid var(--dark-border);">
+                            <div style="font-size: var(--font-size-xs); color: #66BB6A; margin-bottom: 3px;">АДМИНИСТРАТОР</div>
+                            <div style="font-size: var(--font-size-sm); color: var(--gray-200);">admin@gsc.com / <code style="color: var(--gold);">admin123</code></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== USERS ======================== -->
+    {% elif active_tab == 'users' %}
+    <div class="tab-content">
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <table class="admin-table">
                 <thead>
-                    <tr style="border-bottom: 2px solid var(--gray-200); text-align: left;">
-                        <th style="padding: var(--spacing-sm);">Email</th>
-                        <th style="padding: var(--spacing-sm);">Имя</th>
-                        <th style="padding: var(--spacing-sm);">Статус</th>
-                        <th style="padding: var(--spacing-sm);">Действие</th>
+                    <tr>
+                        <th>#</th>
+                        <th>Имя / Email</th>
+                        <th>Роль</th>
+                        <th>Статус</th>
+                        <th>Дата</th>
+                        <th>Действия</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for u in users %}
-                        <tr style="border-bottom: 1px solid var(--gray-200);">
-                            <td style="padding: var(--spacing-sm);">{{ u.email }}</td>
-                            <td style="padding: var(--spacing-sm);">{{ u.name }}</td>
-                            <td style="padding: var(--spacing-sm);">
-                                {% if u.status == "verified" %}<span class="badge badge-success">✓</span>
-                                {% else %}<span class="badge badge-warning">pending</span>{% endif %}
-                            </td>
-                            <td style="padding: var(--spacing-sm);">
-                                {% if u.status != "verified" %}
-                                    <form method="post" action="{{ url_for('admin_user_verify', user_id=u.id) }}" style="display: inline;">
-                                        <button type="submit" class="btn btn-primary btn-sm">Верифицировать</button>
-                                    </form>
+                    <tr {% if u.status == 'banned' %}style="opacity: 0.5;"{% endif %}>
+                        <td style="color: var(--gray-500); font-size: var(--font-size-xs);">{{ u.id }}</td>
+                        <td>
+                            <div style="font-weight: 600; color: var(--gray-100);">{{ u.name }}</div>
+                            <div style="font-size: var(--font-size-xs); color: var(--gray-500);">{{ u.email }}</div>
+                        </td>
+                        <td>
+                            <span class="badge {{ u.role_badge }}">{{ u.role_display }}</span>
+                        </td>
+                        <td>
+                            {% if u.status == 'verified' %}
+                                <span class="badge badge-success">✓ Верифицирован</span>
+                            {% elif u.status == 'banned' %}
+                                <span class="badge" style="background: rgba(239,83,80,0.1); color: #EF5350; border: 1px solid rgba(239,83,80,0.3);">⊘ Заблокирован</span>
+                            {% else %}
+                                <span class="badge badge-warning">Ожидает</span>
+                            {% endif %}
+                        </td>
+                        <td style="color: var(--gray-500); font-size: var(--font-size-xs);">
+                            {{ u.created_at.strftime('%d.%m.%Y') if u.created_at else '—' }}
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                {% if u.status != 'verified' and u.status != 'banned' %}
+                                <form method="post" action="{{ url_for('admin_user_verify', user_id=u.id) }}">
+                                    <button type="submit" class="btn btn-primary btn-sm">Верифицировать</button>
+                                </form>
                                 {% endif %}
-                            </td>
-                        </tr>
+
+                                {% if u.status == 'banned' %}
+                                <form method="post" action="{{ url_for('admin_user_unban', user_id=u.id) }}">
+                                    <button type="submit" class="btn btn-secondary btn-sm">Разблок.</button>
+                                </form>
+                                {% elif not u.is_admin %}
+                                <form method="post" action="{{ url_for('admin_user_ban', user_id=u.id) }}"
+                                      onsubmit="return confirm('Заблокировать {{ u.name }}?')">
+                                    <button type="submit" class="btn btn-sm"
+                                            style="background:rgba(239,83,80,0.1);color:#EF5350;border:1px solid rgba(239,83,80,0.3);">
+                                        Блок.
+                                    </button>
+                                </form>
+                                {% endif %}
+
+                                {% if u.id != current_user.id %}
+                                <form method="post" action="{{ url_for('admin_user_role', user_id=u.id) }}"
+                                      style="display:flex; gap: 4px;">
+                                    <select name="role" class="form-select" style="padding: 4px 8px; font-size: var(--font-size-xs); height: auto;">
+                                        <option value="student"   {% if u.role in ('student','user') %}selected{% endif %}>Студент</option>
+                                        <option value="organizer" {% if u.role == 'organizer' %}selected{% endif %}>Организатор</option>
+                                        <option value="admin"     {% if u.role == 'admin' %}selected{% endif %}>Администратор</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-dark btn-sm">OK</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+    </div>
 
-        <h2>Возможности</h2>
-        <div class="card">
-            <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+    <!-- ======================== OPPORTUNITIES ======================== -->
+    {% elif active_tab == 'opportunities' %}
+    <div class="tab-content">
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <table class="admin-table">
                 <thead>
-                    <tr style="border-bottom: 2px solid var(--gray-200); text-align: left;">
-                        <th style="padding: var(--spacing-sm);">Название</th>
-                        <th style="padding: var(--spacing-sm);">Категория</th>
-                        <th style="padding: var(--spacing-sm);">Статус</th>
-                        <th style="padding: var(--spacing-sm);">Действие</th>
+                    <tr>
+                        <th>Название</th>
+                        <th>Категория</th>
+                        <th>Организатор</th>
+                        <th>Дедлайн</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for op in opportunities %}
-                        <tr style="border-bottom: 1px solid var(--gray-200);">
-                            <td style="padding: var(--spacing-sm);"><a href="{{ url_for('opportunity_page', op_id=op.id) }}">{{ op.title }}</a></td>
-                            <td style="padding: var(--spacing-sm);">{{ op.category }}</td>
-                            <td style="padding: var(--spacing-sm);">
-                                {% if op.verified %}<span class="badge badge-success">✓</span>
-                                {% else %}<span class="badge badge-warning">pending</span>{% endif %}
-                            </td>
-                            <td style="padding: var(--spacing-sm);">
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('opportunity_page', op_id=op.id) }}"
+                               style="color: var(--gray-100); font-weight: 500;">{{ op.title }}</a>
+                        </td>
+                        <td><span class="category-tag">{{ op.category or '—' }}</span></td>
+                        <td style="color: var(--gray-400); font-size: var(--font-size-xs);">
+                            {% if op.creator %}{{ op.creator.name }}{% else %}—{% endif %}
+                        </td>
+                        <td style="color: var(--gray-400); font-size: var(--font-size-xs);">{{ op.deadline or '—' }}</td>
+                        <td>
+                            {% if op.verified %}
+                                <span class="badge badge-success">✓ Verified</span>
+                            {% else %}
+                                <span class="badge badge-warning">На проверке</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 6px;">
                                 {% if not op.verified %}
-                                    <form method="post" action="{{ url_for('admin_opportunity_verify', op_id=op.id) }}" style="display: inline;">
-                                        <button type="submit" class="btn btn-primary btn-sm">Верифицировать</button>
-                                    </form>
+                                <form method="post" action="{{ url_for('admin_opportunity_verify', op_id=op.id) }}">
+                                    <button type="submit" class="btn btn-primary btn-sm">Одобрить</button>
+                                </form>
+                                {% else %}
+                                <form method="post" action="{{ url_for('admin_opportunity_reject', op_id=op.id) }}">
+                                    <button type="submit" class="btn btn-secondary btn-sm">Отклонить</button>
+                                </form>
                                 {% endif %}
-                            </td>
-                        </tr>
+                                <form method="post" action="{{ url_for('admin_opportunity_delete', op_id=op.id) }}"
+                                      onsubmit="return confirm('Удалить «{{ op.title }}»?')">
+                                    <button type="submit" class="btn btn-sm"
+                                            style="background:rgba(239,83,80,0.1);color:#EF5350;border:1px solid rgba(239,83,80,0.3);">
+                                        Удалить
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-
-        <a href="/" class="back-link mt-4">← На главную</a>
     </div>
+
+    <!-- ======================== COMMUNITIES ======================== -->
+    {% elif active_tab == 'communities' %}
+    <div class="tab-content">
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Категория</th>
+                        <th>Создатель</th>
+                        <th>Участников</th>
+                        <th>Создано</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for g in groups %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('community_group', group_id=g.id) }}"
+                               style="color: var(--gray-100); font-weight: 500;">{{ g.name }}</a>
+                        </td>
+                        <td>
+                            {% if g.category %}
+                                <span class="category-tag">{{ g.category }}</span>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td style="color: var(--gray-400); font-size: var(--font-size-xs);">
+                            {% if g.creator %}{{ g.creator.name }}{% else %}Система{% endif %}
+                        </td>
+                        <td>
+                            <span style="font-weight: 600; color: var(--gold);">
+                                {{ group_member_counts.get(g.id, 0) }}
+                            </span>
+                        </td>
+                        <td style="color: var(--gray-500); font-size: var(--font-size-xs);">
+                            {{ g.created_at.strftime('%d.%m.%Y') if g.created_at else '—' }}
+                        </td>
+                        <td>
+                            <form method="post"
+                                  action="{{ url_for('admin_community_delete', group_id=g.id) }}"
+                                  onsubmit="return confirm('Удалить сообщество «{{ g.name }}»?')">
+                                <button type="submit" class="btn btn-sm"
+                                        style="background:rgba(239,83,80,0.1);color:#EF5350;border:1px solid rgba(239,83,80,0.3);">
+                                    Удалить
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<style>
+.admin-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--dark-border);
+    margin-bottom: var(--spacing-xl);
+}
+.admin-tab {
+    padding: 10px 20px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--gray-400);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    transition: all var(--transition-fast);
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+.admin-tab:hover { color: var(--gray-200); background: rgba(255,255,255,0.04); }
+.admin-tab.active {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+    background: rgba(212,175,55,0.04);
+}
+.tab-badge {
+    background: rgba(255,152,0,0.2);
+    color: #FFA726;
+    border: 1px solid rgba(255,152,0,0.4);
+    border-radius: var(--radius-full);
+    padding: 1px 7px;
+    font-size: 0.65rem;
+    font-weight: 700;
+}
+.tab-content { animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+</style>
 {% endblock %}

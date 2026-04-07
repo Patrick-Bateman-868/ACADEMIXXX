@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Кабинет организатора — Gold Students Club{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!-- Header -->
+    <div class="flex-between mb-4" style="padding-top: var(--spacing-md);">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <span style="font-size: 1.5rem;">🏆</span>
+                <h1 style="margin: 0;">Кабинет организатора</h1>
+            </div>
+            <p style="color: var(--gray-500); margin: 0; font-size: var(--font-size-sm);">
+                Добро пожаловать, <strong style="color: var(--gold-light);">{{ current_user.name }}</strong>
+            </p>
+        </div>
+        <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
+            <a href="{{ url_for('add_opportunity') }}" class="btn btn-primary">+ Добавить возможность</a>
+            <a href="{{ url_for('create_community') }}" class="btn btn-secondary">+ Создать сообщество</a>
+        </div>
+    </div>
+
+    <!-- Stats row -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-xl);">
+        <div class="card text-center" style="padding: var(--spacing-lg);">
+            <div style="font-size: 2rem; font-weight: 900; color: var(--gold); margin-bottom: 4px;">{{ my_opportunities|length }}</div>
+            <div style="font-size: var(--font-size-sm); color: var(--gray-400);">Возможностей</div>
+        </div>
+        <div class="card text-center" style="padding: var(--spacing-lg);">
+            <div style="font-size: 2rem; font-weight: 900; color: var(--gold); margin-bottom: 4px;">
+                {{ my_opportunities|selectattr('verified')|list|length }}
+            </div>
+            <div style="font-size: var(--font-size-sm); color: var(--gray-400);">Верифицировано</div>
+        </div>
+        <div class="card text-center" style="padding: var(--spacing-lg);">
+            <div style="font-size: 2rem; font-weight: 900; color: var(--gold); margin-bottom: 4px;">{{ my_groups|length }}</div>
+            <div style="font-size: var(--font-size-sm); color: var(--gray-400);">Сообществ</div>
+        </div>
+        <div class="card text-center" style="padding: var(--spacing-lg);">
+            <div style="font-size: 2rem; font-weight: 900; color: var(--gold); margin-bottom: 4px;">
+                {{ group_member_counts.values()|sum if group_member_counts else 0 }}
+            </div>
+            <div style="font-size: var(--font-size-sm); color: var(--gray-400);">Участников</div>
+        </div>
+    </div>
+
+    <!-- My Opportunities -->
+    <div style="margin-bottom: var(--spacing-2xl);">
+        <div class="flex-between mb-3">
+            <h2 style="margin: 0;">Мои возможности</h2>
+            <a href="{{ url_for('add_opportunity') }}" class="btn btn-primary btn-sm">+ Добавить</a>
+        </div>
+
+        {% if my_opportunities %}
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Категория</th>
+                        <th>Дедлайн</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for op in my_opportunities %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('opportunity_page', op_id=op.id) }}"
+                               style="color: var(--gray-100); font-weight: 500;">{{ op.title }}</a>
+                        </td>
+                        <td>
+                            <span class="category-tag">{{ op.category or '—' }}</span>
+                        </td>
+                        <td style="color: var(--gray-400); font-size: var(--font-size-sm);">
+                            {{ op.deadline or '—' }}
+                        </td>
+                        <td>
+                            {% if op.verified %}
+                                <span class="badge badge-success">✓ Approved</span>
+                            {% else %}
+                                <span class="badge badge-warning">На проверке</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 6px;">
+                                <a href="{{ url_for('edit_opportunity', op_id=op.id) }}"
+                                   class="btn btn-dark btn-sm">Изменить</a>
+                                <form method="post"
+                                      action="{{ url_for('delete_opportunity', op_id=op.id) }}"
+                                      onsubmit="return confirm('Удалить «{{ op.title }}»?')">
+                                    <button type="submit" class="btn btn-sm"
+                                            style="background: rgba(239,83,80,0.1); color: #EF5350; border: 1px solid rgba(239,83,80,0.3);">
+                                        Удалить
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-state-icon">📋</span>
+            <h3>Ещё нет возможностей</h3>
+            <p class="text-muted">Добавьте первую возможность для студентов</p>
+            <a href="{{ url_for('add_opportunity') }}" class="btn btn-primary mt-3">Добавить возможность</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- My Communities -->
+    <div style="margin-bottom: var(--spacing-xl);">
+        <div class="flex-between mb-3">
+            <h2 style="margin: 0;">Мои сообщества</h2>
+            <a href="{{ url_for('create_community') }}" class="btn btn-secondary btn-sm">+ Создать</a>
+        </div>
+
+        {% if my_groups %}
+        <div class="grid grid-2">
+            {% for g in my_groups %}
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title" style="font-size: var(--font-size-xl);">
+                        <a href="{{ url_for('community_group', group_id=g.id) }}">{{ g.name }}</a>
+                    </h3>
+                    <div class="card-subtitle">
+                        {% if g.category %}<span class="category-tag">{{ g.category }}</span>{% endif %}
+                        <span style="color: var(--gray-500); font-size: var(--font-size-xs);">
+                            👥 {{ group_member_counts.get(g.id, 0) }} участников
+                        </span>
+                    </div>
+                </div>
+                <p class="card-text">{{ g.description or 'Нет описания' }}</p>
+                <div class="card-footer">
+                    <a href="{{ url_for('community_group', group_id=g.id) }}" class="btn btn-outline btn-sm">Открыть</a>
+                    <form method="post"
+                          action="{{ url_for('delete_community', group_id=g.id) }}"
+                          onsubmit="return confirm('Удалить сообщество «{{ g.name }}»?')">
+                        <button type="submit" class="btn btn-sm"
+                                style="background: rgba(239,83,80,0.1); color: #EF5350; border: 1px solid rgba(239,83,80,0.3);">
+                            Удалить
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-state-icon">👥</span>
+            <h3>Ещё нет сообществ</h3>
+            <p class="text-muted">Создайте первое сообщество</p>
+            <a href="{{ url_for('create_community') }}" class="btn btn-primary mt-3">Создать сообщество</a>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

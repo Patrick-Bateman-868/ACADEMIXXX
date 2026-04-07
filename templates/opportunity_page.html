@@ -3,54 +3,123 @@
 {% block title %}{{ op.title }} — Gold Students Club{% endblock %}
 
 {% block content %}
-    <div class="container-narrow">
-        <div class="card">
-            <div class="card-header">
-                <h1 class="card-title">{{ op.title }}</h1>
-                <div class="card-subtitle">
+<div style="padding: var(--spacing-xl) var(--spacing-lg); max-width: 760px; margin: 0 auto;">
+
+    <!-- Back -->
+    <a href="/opportunities" class="back-link" style="margin-top: 0; margin-bottom: var(--spacing-lg); display: inline-flex;">
+        К возможностям
+    </a>
+
+    <div class="card" style="padding: var(--spacing-xl);">
+
+        <!-- Header -->
+        <div style="margin-bottom: var(--spacing-lg);">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--spacing-md); flex-wrap: wrap; margin-bottom: var(--spacing-sm);">
+                <h1 style="font-size: var(--font-size-3xl); margin: 0;">{{ op.title }}</h1>
+                {% if op.verified %}
+                    <span class="badge badge-success" style="flex-shrink: 0;">✓ Verified</span>
+                {% else %}
+                    <span class="badge badge-warning" style="flex-shrink: 0;">На проверке</span>
+                {% endif %}
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                {% if op.category %}
                     <span class="category-tag">{{ op.category }}</span>
-                    {% if op.verified %}
-                        <span class="badge badge-success">✓ Verified</span>
-                    {% else %}
-                        <span class="badge badge-warning">Pending verification</span>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="card-text">
-                <h4>Описание</h4>
-                <p>{{ op.description or '—' }}</p>
-                {% if op.requirements %}
-                    <h4 class="mt-3">Требования</h4>
-                    <p>{{ op.requirements }}</p>
                 {% endif %}
-                {% if op.source %}
-                    <p class="mt-2"><strong>Источник / партнёр:</strong> {{ op.source }}</p>
+                {% if op.deadline %}
+                    <span style="font-size: var(--font-size-sm); color: var(--gray-400);">
+                        📅 Дедлайн: <strong style="color: var(--gray-200);">{{ op.deadline }}</strong>
+                    </span>
                 {% endif %}
-            </div>
-
-            <div class="card-footer" style="flex-direction: column; align-items: flex-start; gap: var(--spacing-md);">
-                <div style="width: 100%;">
-                    {% if op.deadline %}<p><strong>Дедлайн:</strong> {{ op.deadline }}</p>{% endif %}
-                </div>
-
-                <hr style="width: 100%; border: none; border-top: 1px solid var(--gray-200); margin: var(--spacing-md) 0;">
-
-                <div style="width: 100%;">
-                    <h4 style="margin-bottom: var(--spacing-md);">Подать заявку</h4>
-                    <form method="post">
-                        <div class="form-group">
-                            <label class="form-label">Ваш email *</label>
-                            <input type="email" name="email" class="form-control" placeholder="your.email@example.com" value="{% if current_user.is_authenticated %}{{ current_user.email }}{% endif %}" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-block">
-                            Подать заявку
-                        </button>
-                    </form>
-                </div>
+                {% if op.views_count %}
+                    <span style="font-size: var(--font-size-xs); color: var(--gray-600);">👁 {{ op.views_count }} просмотров</span>
+                {% endif %}
             </div>
         </div>
 
-        <a href="/opportunities" class="back-link">← Назад к возможностям</a>
+        <!-- Description -->
+        {% if op.description %}
+        <div style="margin-bottom: var(--spacing-lg);">
+            <h4 style="color: var(--gray-300); font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--spacing-sm);">Описание</h4>
+            <p style="color: var(--gray-200); line-height: 1.8; margin: 0;">{{ op.description }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Requirements -->
+        {% if op.requirements %}
+        <div style="margin-bottom: var(--spacing-lg); padding: var(--spacing-md); background: rgba(212,175,55,0.04); border: 1px solid rgba(212,175,55,0.1); border-radius: var(--radius-md);">
+            <h4 style="color: var(--gold-dark); font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--spacing-sm);">Требования</h4>
+            <p style="color: var(--gray-200); line-height: 1.7; margin: 0;">{{ op.requirements }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Source -->
+        {% if op.source %}
+        <div style="margin-bottom: var(--spacing-lg);">
+            <span style="font-size: var(--font-size-sm); color: var(--gray-500);">Организация:</span>
+            <span style="font-size: var(--font-size-sm); color: var(--gray-200); margin-left: 6px; font-weight: 500;">{{ op.source }}</span>
+        </div>
+        {% endif %}
+
+        <!-- Divider -->
+        <hr style="border: none; border-top: 1px solid var(--dark-border); margin: var(--spacing-lg) 0;">
+
+        <!-- Apply section -->
+        {% if current_user.is_authenticated and current_user.is_student %}
+
+            {% if already_applied %}
+            <div style="text-align: center; padding: var(--spacing-md); background: rgba(102,187,106,0.08); border: 1px solid rgba(102,187,106,0.25); border-radius: var(--radius-md);">
+                <div style="font-size: 1.5rem; margin-bottom: 6px;">✓</div>
+                <p style="color: #66BB6A; font-weight: 600; margin: 0;">Вы уже подали заявку на эту возможность</p>
+            </div>
+            {% elif op.registration_link %}
+            <div>
+                <h4 style="margin-bottom: var(--spacing-md);">Как подать заявку</h4>
+                <p style="color: var(--gray-400); font-size: var(--font-size-sm); margin-bottom: var(--spacing-md);">
+                    Эта возможность принимает заявки через внешний сайт организатора.
+                </p>
+                <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
+                    <a href="{{ op.registration_link }}" target="_blank" rel="noopener noreferrer"
+                       class="btn btn-primary btn-lg">
+                        Подать заявку →
+                    </a>
+                    <form method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary">Отметить как "Подал заявку"</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div>
+                <h4 style="margin-bottom: var(--spacing-md);">Подать заявку</h4>
+                <form method="post">
+                    <div class="form-group">
+                        <label class="form-label">Ваш email</label>
+                        <input type="email" name="email" class="form-control"
+                               value="{{ current_user.email }}" readonly
+                               style="opacity: 0.7;">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg">Подать заявку</button>
+                </form>
+            </div>
+            {% endif %}
+
+        {% elif current_user.is_authenticated and current_user.is_organizer %}
+            <div style="padding: var(--spacing-md); background: rgba(212,175,55,0.05); border: 1px solid rgba(212,175,55,0.15); border-radius: var(--radius-md); text-align: center;">
+                <p style="color: var(--gray-400); margin: 0; font-size: var(--font-size-sm);">
+                    Вы просматриваете эту страницу как организатор.
+                    {% if op.created_by == current_user.id %}
+                        <a href="{{ url_for('edit_opportunity', op_id=op.id) }}" style="color: var(--gold);">Редактировать</a>
+                    {% endif %}
+                </p>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: var(--spacing-lg);">
+                <p style="color: var(--gray-400); margin-bottom: var(--spacing-md);">Войдите как студент, чтобы подать заявку</p>
+                <a href="{{ url_for('login', next=request.path) }}" class="btn btn-primary">Войти</a>
+                <a href="{{ url_for('signup') }}" class="btn btn-secondary" style="margin-left: 10px;">Зарегистрироваться</a>
+            </div>
+        {% endif %}
+
     </div>
+</div>
 {% endblock %}

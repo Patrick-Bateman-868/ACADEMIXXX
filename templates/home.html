@@ -3,61 +3,63 @@
 {% block title %}Gold Students Club{% endblock %}
 
 {% block content %}
-    <div class="hero">
-        <h1>Gold Students Club</h1>
-        <p class="subtitle">
-            Закрытое международное сообщество<br>
-            выдающихся студентов и проверенных возможностей
-        </p>
 
-        <div class="button-group">
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('profile') }}" class="btn btn-primary btn-lg">Мой профиль</a>
-            {% else %}
-                <a href="{{ url_for('signup') }}" class="btn btn-primary btn-lg">Подать заявку в клуб</a>
-            {% endif %}
-            <a href="/partners" class="btn btn-secondary btn-lg">
-                Для организаций
-            </a>
+    <!-- Hero -->
+    <section class="hero-wrapper">
+        <div class="hero-orb hero-orb-1"></div>
+        <div class="hero-orb hero-orb-2"></div>
+        <div class="hero-orb hero-orb-3"></div>
+
+        <div class="hero">
+            <div class="hero-eyebrow">Закрытое сообщество</div>
+
+            <h1>Gold Students Club</h1>
+
+            <p class="subtitle">
+                Международная сеть выдающихся студентов<br>
+                и проверенных возможностей для роста
+            </p>
+
+            <div class="button-group">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('profile') }}" class="btn btn-primary btn-lg">Мой профиль</a>
+                    <a href="/opportunities" class="btn btn-secondary btn-lg">Возможности</a>
+                {% else %}
+                    <a href="{{ url_for('signup') }}" class="btn btn-primary btn-lg">Подать заявку</a>
+                    <a href="/partners" class="btn btn-secondary btn-lg">Для организаций</a>
+                {% endif %}
+            </div>
+
+            <p class="note">Все профили и возможности проходят модерацию</p>
         </div>
+    </section>
 
-        <p class="note">
-            Все профили и возможности проходят модерацию
-        </p>
-    </div>
-
-    <!-- Статистика -->
+    <!-- Stats -->
     {% if stats %}
-        <div class="container">
-            <div class="grid grid-3" style="margin-top: var(--spacing-xl);">
-                <div class="card text-center">
-                    <div style="font-size: var(--font-size-4xl); margin-bottom: var(--spacing-sm);">👥</div>
-                    <h2 style="margin-bottom: var(--spacing-xs);">{{ stats.total_users }}</h2>
-                    <p class="text-muted">Студентов в клубе</p>
-                    {% if stats.verified_users > 0 %}
-                        <p style="font-size: var(--font-size-sm); color: var(--gold-dark); margin-top: var(--spacing-xs);">
-                            {{ stats.verified_users }} верифицированных
-                        </p>
-                    {% endif %}
-                </div>
-                
-                <div class="card text-center">
-                    <div style="font-size: var(--font-size-4xl); margin-bottom: var(--spacing-sm);">🎯</div>
-                    <h2 style="margin-bottom: var(--spacing-xs);">{{ stats.total_opportunities }}</h2>
-                    <p class="text-muted">Возможностей</p>
-                    {% if stats.verified_opportunities > 0 %}
-                        <p style="font-size: var(--font-size-sm); color: var(--gold-dark); margin-top: var(--spacing-xs);">
-                            {{ stats.verified_opportunities }} проверенных
-                        </p>
-                    {% endif %}
-                </div>
-                
-                <div class="card text-center">
-                    <div style="font-size: var(--font-size-4xl); margin-bottom: var(--spacing-sm);">📝</div>
-                    <h2 style="margin-bottom: var(--spacing-xs);">{{ stats.total_applications }}</h2>
-                    <p class="text-muted">Подано заявок</p>
-                </div>
+    <section class="stats-section">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number" data-target="{{ stats.total_users }}">{{ stats.total_users }}</span>
+                <p class="stat-label">Студентов в клубе</p>
+                {% if stats.verified_users > 0 %}
+                    <p class="stat-sublabel">{{ stats.verified_users }} верифицированных</p>
+                {% endif %}
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-number" data-target="{{ stats.total_opportunities }}">{{ stats.total_opportunities }}</span>
+                <p class="stat-label">Возможностей</p>
+                {% if stats.verified_opportunities > 0 %}
+                    <p class="stat-sublabel">{{ stats.verified_opportunities }} проверенных</p>
+                {% endif %}
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-number" data-target="{{ stats.total_applications }}">{{ stats.total_applications }}</span>
+                <p class="stat-label">Подано заявок</p>
             </div>
         </div>
+    </section>
     {% endif %}
+
 {% endblock %}
