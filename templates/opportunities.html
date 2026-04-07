@@ -9,19 +9,127 @@
                 <h1>Возможности</h1>
                 <p class="text-muted">Проверенные возможности для вашего развития</p>
             </div>
-            <a href="/add-opportunity" class="btn btn-primary">
-                + Добавить возможность
+            {% if current_user.is_authenticated and current_user.is_organizer %}
+            <a href="/add-opportunity" class="btn btn-primary">+ Добавить возможность</a>
+            {% endif %}
+        </div>
+
+        <!-- Вкладки -->
+        {% if current_user.is_authenticated %}
+        <div style="display: flex; gap: 4px; margin-bottom: var(--spacing-lg); border-bottom: 1px solid var(--dark-border); padding-bottom: 0;">
+            <a href="{{ url_for('opportunities', tab='all') }}"
+               style="padding: 10px 20px; font-size: var(--font-size-sm); font-weight: 500; border-radius: var(--radius-sm) var(--radius-sm) 0 0; text-decoration: none; transition: all var(--transition-base);
+               {% if active_tab == 'all' %}background: var(--dark-light); color: var(--gold); border: 1px solid var(--dark-border); border-bottom: 1px solid var(--dark-light); margin-bottom: -1px;{% else %}color: var(--gray-400);{% endif %}">
+                Все возможности
+            </a>
+            <a href="{{ url_for('opportunities', tab='recommendations') }}"
+               style="padding: 10px 20px; font-size: var(--font-size-sm); font-weight: 500; border-radius: var(--radius-sm) var(--radius-sm) 0 0; text-decoration: none; transition: all var(--transition-base);
+               {% if active_tab == 'recommendations' %}background: var(--dark-light); color: var(--gold); border: 1px solid var(--dark-border); border-bottom: 1px solid var(--dark-light); margin-bottom: -1px;{% else %}color: var(--gray-400);{% endif %}">
+                ✨ Рекомендации для вас
             </a>
         </div>
+        {% endif %}
+
+        {% if active_tab == 'recommendations' %}
+        <!-- ======= ВКЛАДКА РЕКОМЕНДАЦИЙ ======= -->
+
+            {% if not current_user.is_authenticated %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔒</div>
+                    <h3>Войдите, чтобы увидеть рекомендации</h3>
+                    <a href="{{ url_for('login') }}" class="btn btn-primary mt-3">Войти</a>
+                </div>
+
+            {% elif profile_empty %}
+                <div class="card" style="padding: var(--spacing-xl); text-align: center; border-color: rgba(212,175,55,0.2);">
+                    <div style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">👤</div>
+                    <h3 style="margin-bottom: var(--spacing-sm);">Заполните профиль</h3>
+                    <p class="text-muted" style="margin-bottom: var(--spacing-lg);">
+                        Укажите навыки, интересы и цели — AI подберёт подходящие возможности специально для вас.
+                    </p>
+                    <a href="{{ url_for('profile') }}" class="btn btn-primary">Заполнить профиль</a>
+                </div>
+
+            {% elif not ollama_available %}
+                <div class="card" style="padding: var(--spacing-xl); text-align: center; border-color: rgba(255,100,100,0.2);">
+                    <div style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">🤖</div>
+                    <h3 style="margin-bottom: var(--spacing-sm);">AI-сервис недоступен</h3>
+                    <p class="text-muted">Ollama не запущен. Попросите администратора запустить <code>ollama serve</code>.</p>
+                </div>
+
+            {% elif recommendations is none %}
+                <div class="card" style="padding: var(--spacing-xl); text-align: center; border-color: rgba(255,100,100,0.2);">
+                    <div style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">⚠️</div>
+                    <h3 style="margin-bottom: var(--spacing-sm);">Ошибка генерации рекомендаций</h3>
+                    <p class="text-muted">Попробуйте обновить рекомендации позже.</p>
+                </div>
+
+            {% elif recommendations|length == 0 %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔍</div>
+                    <h3>Рекомендаций пока нет</h3>
+                    <p class="text-muted">Нет верифицированных возможностей для подбора. Загляните позже.</p>
+                </div>
+
+            {% else %}
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--spacing-sm); margin-bottom: var(--spacing-lg);">
+                    <p class="text-muted" style="margin: 0;">
+                        ✨ Подобрано <strong style="color: var(--gold);">{{ recommendations|length }}</strong> возможностей по вашему профилю
+                    </p>
+                    <form method="post" action="{{ url_for('recommendations_refresh') }}" style="display:inline;">
+                        <button type="submit" class="btn btn-secondary btn-sm">↻ Обновить рекомендации</button>
+                    </form>
+                </div>
+
+                <div class="grid grid-2">
+                    {% for op, explanation in recommendations %}
+                    <div class="card opportunity-card" style="border-color: rgba(212,175,55,0.15);">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <a href="/opportunity/{{ op.id }}">{{ op.title }}</a>
+                            </h3>
+                            <div class="card-subtitle">
+                                <span class="category-tag">{{ op.category }}</span>
+                                {% if op.deadline %}
+                                    <span class="deadline">Дедлайн: {{ op.deadline }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <p class="card-text">
+                            {% if op.description %}
+                                {{ op.description[:150] }}{% if op.description|length > 150 %}...{% endif %}
+                            {% else %}
+                                <span class="text-muted">Описание отсутствует</span>
+                            {% endif %}
+                        </p>
+                        {% if explanation %}
+                        <div style="margin: 0 0 var(--spacing-sm) 0; padding: 8px 12px; background: rgba(212,175,55,0.06); border-left: 2px solid var(--gold-dark); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;">
+                            <p style="margin: 0; font-size: var(--font-size-xs); color: var(--gray-400); line-height: 1.5;">
+                                <span style="color: var(--gold-dark);">✨ Почему вам:</span> {{ explanation }}
+                            </p>
+                        </div>
+                        {% endif %}
+                        <div class="card-footer">
+                            <span class="badge badge-success">✓ Verified</span>
+                            <a href="/opportunity/{{ op.id }}" class="btn btn-outline btn-sm">Подробнее →</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+        {% else %}
+        <!-- ======= ВКЛАДКА ВСЕХ ВОЗМОЖНОСТЕЙ ======= -->
 
         <!-- Фильтры и поиск -->
         <div class="filter-card">
             <form method="GET" action="/opportunities" class="filter-form">
+                <input type="hidden" name="tab" value="all">
                 <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: var(--spacing-md); align-items: end;">
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label">Поиск</label>
-                        <input type="text" name="search" class="form-control" 
-                               placeholder="Название, описание, требования, партнёр..." 
+                        <input type="text" name="search" class="form-control"
+                               placeholder="Название, описание, требования, партнёр..."
                                value="{{ current_search }}">
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
@@ -41,8 +149,8 @@
                         </select>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label style="display: flex; align-items: center; gap: var(--spacing-xs); cursor: pointer; margin-bottom: var(--spacing-xs);"><input type="checkbox" name="verified" {% if verified_only %}checked{% endif %}"> Верифицированные</label>
-                        <label style="display: flex; align-items: center; gap: var(--spacing-xs); cursor: pointer;"><input type="checkbox" name="deadline" {% if with_deadline %}checked{% endif %}"> С дедлайном</label>
+                        <label style="display: flex; align-items: center; gap: var(--spacing-xs); cursor: pointer; margin-bottom: var(--spacing-xs);"><input type="checkbox" name="verified" {% if verified_only %}checked{% endif %}> Верифицированные</label>
+                        <label style="display: flex; align-items: center; gap: var(--spacing-xs); cursor: pointer;"><input type="checkbox" name="deadline" {% if with_deadline %}checked{% endif %}> С дедлайном</label>
                     </div>
                     <div>
                         <button type="submit" class="btn btn-primary btn-block">Применить</button>
@@ -89,6 +197,9 @@
                                 {% else %}
                                     <span class="badge badge-warning">Pending</span>
                                 {% endif %}
+                                {% if op.ai_scraped %}
+                                    <span class="badge" style="background: rgba(100,160,255,0.15); color: #64a0ff; border: 1px solid rgba(100,160,255,0.3); font-size: var(--font-size-xs);">🤖 AI</span>
+                                {% endif %}
                                 {% if op.views_count %}
                                     <span class="text-muted" style="font-size: var(--font-size-xs); margin-left: var(--spacing-sm);">
                                         👁 {{ op.views_count }}
@@ -100,13 +211,13 @@
                     </div>
                 {% endfor %}
             </div>
-            
+
             <!-- Пагинация -->
             {% if pagination.pages > 1 %}
                 <div class="pagination mt-4">
                     <div class="flex-center gap-sm">
                         {% if pagination.has_prev %}
-                            {% set prev_url = '/opportunities?page=' + pagination.prev_num|string %}
+                            {% set prev_url = '/opportunities?tab=all&page=' + pagination.prev_num|string %}
                             {% if current_category %}{% set prev_url = prev_url + '&category=' + current_category %}{% endif %}
                             {% if current_search %}{% set prev_url = prev_url + '&search=' + current_search %}{% endif %}
                             {% if verified_only %}{% set prev_url = prev_url + '&verified=on' %}{% endif %}
@@ -119,7 +230,7 @@
                                 {% if page_num == pagination.page %}
                                     <span class="btn btn-primary btn-sm" style="pointer-events: none;">{{ page_num }}</span>
                                 {% else %}
-                                    {% set page_url = '/opportunities?page=' + page_num|string %}
+                                    {% set page_url = '/opportunities?tab=all&page=' + page_num|string %}
                                     {% if current_category %}{% set page_url = page_url + '&category=' + current_category %}{% endif %}
                                     {% if current_search %}{% set page_url = page_url + '&search=' + current_search %}{% endif %}
                                     {% if verified_only %}{% set page_url = page_url + '&verified=on' %}{% endif %}
@@ -132,7 +243,7 @@
                             {% endif %}
                         {% endfor %}
                         {% if pagination.has_next %}
-                            {% set next_url = '/opportunities?page=' + pagination.next_num|string %}
+                            {% set next_url = '/opportunities?tab=all&page=' + pagination.next_num|string %}
                             {% if current_category %}{% set next_url = next_url + '&category=' + current_category %}{% endif %}
                             {% if current_search %}{% set next_url = next_url + '&search=' + current_search %}{% endif %}
                             {% if verified_only %}{% set next_url = next_url + '&verified=on' %}{% endif %}
@@ -148,9 +259,13 @@
                 <div class="empty-state-icon">📋</div>
                 <h3>Пока нет возможностей</h3>
                 <p class="text-muted">Будьте первым, кто добавит возможность для сообщества</p>
+                {% if current_user.is_authenticated and current_user.is_organizer %}
                 <a href="/add-opportunity" class="btn btn-primary mt-3">Добавить возможность</a>
+                {% endif %}
             </div>
         {% endif %}
+
+        {% endif %}{# end tab check #}
 
         <a href="/" class="back-link">На главную</a>
     </div>

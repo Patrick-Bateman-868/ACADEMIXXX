@@ -1,0 +1,142 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+    background-color: #f0f9f0;
+    color: #1a3b2f;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+header {
+    background: linear-gradient(135deg, #1e6b3b, #2a9d6e);
+    color: white;
+    padding: 2rem 0;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.8rem;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+main {
+    background: white;
+    border-radius: 24px;
+    margin: 2rem auto;
+    padding: 2rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+section {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e0f0e4;
+}
+
+section:last-child {
+    border-bottom: none;
+}
+
+h2 {
+    color: #1b5e3f;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    position: relative;
+    padding-left: 0.5rem;
+    border-left: 5px solid #2ecc71;
+}
+
+ul, .prize-list {
+    margin-top: 0.5rem;
+    margin-left: 1.5rem;
+}
+
+li {
+    margin-bottom: 0.5rem;
+}
+
+.prize-item {
+    background: #f4faf5;
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.8rem;
+    border-radius: 16px;
+    font-size: 1.1rem;
+}
+
+.place {
+    font-weight: bold;
+    color: #117a4b;
+}
+
+.date-label {
+    font-weight: 600;
+    display: inline-block;
+    min-width: 200px;
+    color: #2c5e3c;
+}
+
+.dates-list li {
+    list-style: none;
+    margin-bottom: 0.7rem;
+}
+
+.button {
+    display: inline-block;
+    background: #2ecc71;
+    color: white;
+    padding: 0.9rem 1.8rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-radius: 40px;
+    text-decoration: none;
+    margin: 1rem 0 0.5rem;
+    transition: 0.2s;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+.button:hover {
+    background: #27ae60;
+    transform: scale(1.02);
+}
+
+.note {
+    font-size: 0.85rem;
+    color: #6c8b7a;
+    margin-top: 0.5rem;
+}
+
+footer {
+    background: #1a3b2f;
+    color: #c0e0d0;
+    text-align: center;
+    padding: 1.5rem 0;
+    margin-top: 2rem;
+    font-size: 0.9rem;
+}
+
+footer p {
+    margin: 0.3rem 0;
+}
+
+@media (max-width: 700px) {
+    header h1 { font-size: 2rem; }
+    .container { padding: 0 15px; }
+    main { padding: 1.2rem; }
+    .date-label { display: block; margin-bottom: 0.2rem; }
+}

@@ -6,12 +6,25 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from functools import wraps
 from sqlalchemy import text, inspect
+from sqlalchemy.pool import NullPool
 import re
+import atexit
+from apscheduler.schedulers.background import BackgroundScheduler
+
+app = Flask(__name__)
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "dev-secret-key-change-in-production"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///students.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "connect_args": {"timeout": 30},  # SQLite ждёт 30с при блокировке вместо немедленной ошибки
+    "poolclass": NullPool,            # Новое соединение на каждый запрос — безопасно при многопоточности
+}
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
@@ -88,6 +101,7 @@ class Opportunity(db.Model):
     source = db.Column(db.String(200))
     registration_link = db.Column(db.String(500))
     verified = db.Column(db.Boolean, default=False, index=True)
+    ai_scraped = db.Column(db.Boolean, default=False, index=True)
     views_count = db.Column(db.Integer, default=0)
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
     creator = db.relationship("User", backref=db.backref("opportunities", lazy="dynamic"))
@@ -126,6 +140,33 @@ class GroupMember(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
     __table_args__ = (db.UniqueConstraint("group_id", "user_id", name="uq_group_member"),)
+
+
+class ScrapingTarget(db.Model):
+    __tablename__ = "scraping_target"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    url = db.Column(db.String(500), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    auto_scrape = db.Column(db.Boolean, default=True)
+    last_scraped = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<ScrapingTarget {self.name}>"
+
+
+class Recommendation(db.Model):
+    __tablename__ = "recommendation"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    opportunity_id = db.Column(db.Integer, db.ForeignKey("opportunity.id"), nullable=False)
+    score = db.Column(db.Float, default=0.5)
+    explanation = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship("User", backref=db.backref("recommendations", lazy="dynamic"))
+    opportunity = db.relationship("Opportunity", backref=db.backref("recommendations", lazy="dynamic"))
+    __table_args__ = (db.UniqueConstraint("user_id", "opportunity_id", name="uq_user_opportunity_rec"),)
 
 
 # ============================================
@@ -211,8 +252,10 @@ def login():
             flash("Ваш аккаунт заблокирован. Обратитесь к администратору.", "error")
             return render_template("login.html")
         login_user(user)
-        next_url = request.args.get("next") or url_for("profile")
-        return redirect(next_url)
+        next_url = request.args.get("next")
+        if next_url and not next_url.startswith("/"):
+            next_url = None
+        return redirect(next_url or url_for("profile"))
     return render_template("login.html")
 
 
@@ -238,6 +281,11 @@ def home():
     }
     return render_template("home.html", stats=stats)
 
+app = Flask(__name__)
+
+@app.route('/')
+def random():
+    return render_template('random.html')
 
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
@@ -256,6 +304,8 @@ def profile():
             user.goals = request.form.get("goals", "").strip() or None
             user.interests = request.form.get("interests", "").strip() or None
             user.links = request.form.get("links", "").strip() or None
+            # Invalidate recommendations cache on profile update
+            Recommendation.query.filter_by(user_id=user.id).delete()
             db.session.commit()
             flash("Профиль сохранён", "success")
             if user.is_organizer:
@@ -326,6 +376,30 @@ def profile_view(user_id):
 
 @app.route("/opportunities")
 def opportunities():
+    from ollama_client import get_recommendations_for_user, is_ollama_available
+
+    active_tab = request.args.get("tab", "all")
+
+    # --- Recommendations tab ---
+    if active_tab == "recommendations" and current_user.is_authenticated:
+        profile_empty = not any([current_user.skills, current_user.interests, current_user.goals])
+        ollama_ok = is_ollama_available()
+        recs = []
+        if not profile_empty and ollama_ok:
+            recs = get_recommendations_for_user(current_user, db, Opportunity, Recommendation)
+        return render_template(
+            "opportunities.html",
+            active_tab="recommendations",
+            recommendations=recs,
+            profile_empty=profile_empty,
+            ollama_available=ollama_ok,
+            opportunities=[], pagination=None,
+            categories=[], current_category="",
+            current_search="", verified_only=False,
+            with_deadline=False, sort=""
+        )
+
+    # --- All opportunities tab ---
     category = request.args.get("category", "")
     search_query = request.args.get("search", "").strip()
     verified_only = request.args.get("verified", "") == "on"
@@ -361,6 +435,7 @@ def opportunities():
 
     return render_template(
         "opportunities.html",
+        active_tab="all",
         opportunities=pagination.items,
         pagination=pagination,
         categories=categories,
@@ -368,7 +443,10 @@ def opportunities():
         current_search=search_query,
         verified_only=verified_only,
         with_deadline=with_deadline,
-        sort=sort
+        sort=sort,
+        recommendations=[],
+        profile_empty=False,
+        ollama_available=True,
     )
 
 
@@ -400,7 +478,7 @@ def opportunity_page(op_id):
             ))
             db.session.commit()
             flash("Заявка успешно подана!", "success")
-            return redirect("/opportunities")
+            return redirect(url_for("opportunities"))
 
     return render_template("opportunity_page.html", op=op, already_applied=already_applied)
 
@@ -751,6 +829,123 @@ def admin_community_delete(group_id):
 
 
 # ============================================
+# AI Scraping Routes (Admin)
+# ============================================
+
+@app.route("/admin/scraping")
+@login_required
+@admin_required
+def admin_scraping():
+    from ollama_client import is_ollama_available
+    targets = ScrapingTarget.query.order_by(ScrapingTarget.created_at.desc()).all()
+    ollama_ok = is_ollama_available()
+    return render_template("admin/scraping.html",
+                           targets=targets,
+                           ollama_available=ollama_ok)
+
+
+@app.route("/admin/scraping/run", methods=["POST"])
+@login_required
+@admin_required
+def admin_scraping_run():
+    from ollama_client import is_ollama_available, run_scraping_job
+    if not is_ollama_available():
+        flash("Ollama недоступен. Запустите: ollama serve", "error")
+        return redirect(url_for("admin_scraping"))
+    result = run_scraping_job(db, Opportunity, ScrapingTarget)
+    msg = f"Добавлено: {result['created']}, пропущено дублей: {result['skipped']}"
+    if result["errors"]:
+        msg += f". Ошибки: {'; '.join(result['errors'][:3])}"
+        flash(msg, "warning")
+    else:
+        flash(msg, "success")
+    return redirect(url_for("admin_scraping"))
+
+
+@app.route("/admin/scraping/add-target", methods=["POST"])
+@login_required
+@admin_required
+def admin_scraping_add_target():
+    name = request.form.get("name", "").strip()
+    url = request.form.get("url", "").strip()
+    auto = request.form.get("auto_scrape") == "on"
+    if not name or not url:
+        flash("Название и URL обязательны", "error")
+        return redirect(url_for("admin_scraping"))
+    if not url.startswith(("http://", "https://")):
+        flash("URL должен начинаться с http:// или https://", "error")
+        return redirect(url_for("admin_scraping"))
+    db.session.add(ScrapingTarget(name=name, url=url, auto_scrape=auto))
+    db.session.commit()
+    flash(f"Цель «{name}» добавлена", "success")
+    return redirect(url_for("admin_scraping"))
+
+
+@app.route("/admin/scraping/target/<int:target_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def admin_scraping_delete_target(target_id):
+    t = ScrapingTarget.query.get_or_404(target_id)
+    name = t.name
+    db.session.delete(t)
+    db.session.commit()
+    flash(f"Цель «{name}» удалена", "success")
+    return redirect(url_for("admin_scraping"))
+
+
+@app.route("/admin/scraping/target/<int:target_id>/toggle", methods=["POST"])
+@login_required
+@admin_required
+def admin_scraping_toggle_target(target_id):
+    t = ScrapingTarget.query.get_or_404(target_id)
+    t.is_active = not t.is_active
+    db.session.commit()
+    status = "активирована" if t.is_active else "деактивирована"
+    flash(f"Цель «{t.name}» {status}", "success")
+    return redirect(url_for("admin_scraping"))
+
+
+# ============================================
+# AI Recommendations Route
+# ============================================
+
+@app.route("/api/recommendations/refresh", methods=["POST"])
+@login_required
+def recommendations_refresh():
+    from ollama_client import is_ollama_available, get_recommendations_for_user
+    if not is_ollama_available():
+        flash("Ollama недоступен. Запустите: ollama serve", "error")
+        return redirect(url_for("opportunities", tab="recommendations"))
+    get_recommendations_for_user(current_user, db, Opportunity, Recommendation, force_refresh=True)
+    flash("Рекомендации обновлены!", "success")
+    return redirect(url_for("opportunities", tab="recommendations"))
+
+
+# ============================================
+# Fake Sites (test scraping targets)
+# ============================================
+
+@app.route("/fake-sites/techcontest")
+def fake_site_techcontest():
+    return render_template("fake_sites/techcontest.html")
+
+
+@app.route("/fake-sites/artcompetition")
+def fake_site_artcompetition():
+    return render_template("fake_sites/artcompetition.html")
+
+
+@app.route("/fake-sites/sciencegrant")
+def fake_site_sciencegrant():
+    return render_template("fake_sites/sciencegrant.html")
+
+@app.route('/fake-sites/random')
+def random_site():
+    return render_template("fake_sites/random.html")
+
+if __name__ == '__main__':
+    app.run(debug=True)
+# ============================================
 # Other
 # ============================================
 
@@ -792,6 +987,7 @@ if __name__ == "__main__":
                     ("source",            "ALTER TABLE opportunity ADD COLUMN source VARCHAR(200)"),
                     ("registration_link", "ALTER TABLE opportunity ADD COLUMN registration_link VARCHAR(500)"),
                     ("created_by",        "ALTER TABLE opportunity ADD COLUMN created_by INTEGER"),
+                    ("ai_scraped",        "ALTER TABLE opportunity ADD COLUMN ai_scraped BOOLEAN DEFAULT 0"),
                 ]:
                     if col not in opp_cols:
                         with db.engine.connect() as conn:
@@ -819,10 +1015,18 @@ if __name__ == "__main__":
                         with db.engine.connect() as conn:
                             conn.execute(text(sql)); conn.commit()
 
+            if "application" in inspector.get_table_names():
+                app_cols = [c["name"] for c in inspector.get_columns("application")]
+                for col, sql in [
+                    ("user_id",    "ALTER TABLE application ADD COLUMN user_id INTEGER"),
+                    ("applied_at", "ALTER TABLE application ADD COLUMN applied_at DATETIME"),
+                ]:
+                    if col not in app_cols:
+                        with db.engine.connect() as conn:
+                            conn.execute(text(sql)); conn.commit()
+
         except Exception as e:
             print(f"Migration warning: {e}")
-            db.drop_all()
-            db.create_all()
 
         # ---- Default community groups ----
         if Group.query.count() == 0:
@@ -879,4 +1083,32 @@ if __name__ == "__main__":
                 db.session.add(u)
         db.session.commit()
 
-    app.run(debug=True)
+        # ---- Default scraping targets ----
+        if ScrapingTarget.query.count() == 0:
+            base = "http://127.0.0.1:5000"
+            for name, path in [
+                ("Tech Contest 2025",    "/fake-sites/techcontest"),
+                ("Art Competition 2025", "/fake-sites/artcompetition"),
+                ("Science Grant 2025",   "/fake-sites/sciencegrant"),
+            ]:
+                db.session.add(ScrapingTarget(name=name, url=f"{base}{path}"))
+            db.session.commit()
+
+    # ---- APScheduler: auto-scrape every 24h ----
+    def scheduled_scrape():
+        from ollama_client import run_scraping_job, is_ollama_available
+        with app.app_context():
+            try:
+                if is_ollama_available():
+                    result = run_scraping_job(db, Opportunity, ScrapingTarget)
+                    print(f"[Scheduler] Scraping done: {result}")
+            except Exception as e:
+                db.session.rollback()
+                print(f"[Scheduler] Error during scraping: {e}")
+
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(func=scheduled_scrape, trigger="interval", hours=24, id="auto_scrape")
+    scheduler.start()
+    atexit.register(lambda: scheduler.shutdown())
+
+    app.run(debug=True, use_reloader=False)
