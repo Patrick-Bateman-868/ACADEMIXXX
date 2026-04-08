@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block title %}AI Скрапинг — Админ — Gold Students Club{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: var(--spacing-lg);">
+
+    <div class="flex-between mb-4">
+        <div>
+            <a href="{{ url_for('admin') }}" style="color: var(--gray-500); font-size: var(--font-size-sm); text-decoration: none;">← Назад в панель</a>
+            <h1 style="margin-top: 8px;">🤖 AI Скрапинг</h1>
+            <p class="text-muted">Автоматическое извлечение возможностей из сайтов через Ollama</p>
+        </div>
+        <div style="text-align: right;">
+            {% if ollama_available %}
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(102,187,106,0.1); border: 1px solid rgba(102,187,106,0.3); border-radius: var(--radius-full); font-size: var(--font-size-xs); color: #66BB6A;">
+                    <span style="width: 7px; height: 7px; background: #66BB6A; border-radius: 50%; display: inline-block;"></span>
+                    Ollama работает
+                </div>
+            {% else %}
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(255,100,100,0.1); border: 1px solid rgba(255,100,100,0.3); border-radius: var(--radius-full); font-size: var(--font-size-xs); color: #EF5350;">
+                    <span style="width: 7px; height: 7px; background: #EF5350; border-radius: 50%; display: inline-block;"></span>
+                    Ollama недоступен
+                </div>
+                <p style="font-size: var(--font-size-xs); color: var(--gray-500); margin-top: 6px;">Запустите: <code>ollama serve</code></p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Scraping progress banner (visible during polling) -->
+    <div id="scraping-banner" style="display: none; padding: 14px 20px; background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.25); border-radius: var(--radius-md); margin-bottom: var(--spacing-lg); display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 20px; animation: spin 1.2s linear infinite; display: inline-block;">⏳</span>
+        <span style="color: var(--gray-200);">Скрапинг выполняется… Страница обновится автоматически когда AI закончит работу.</span>
+    </div>
+
+    <!-- Запуск скрапинга -->
+    <div class="card" style="padding: var(--spacing-lg); margin-bottom: var(--spacing-lg); border-color: rgba(212,175,55,0.2);">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--spacing-md);">
+            <div>
+                <h3 style="margin-bottom: 4px;">Запустить скрапинг сейчас</h3>
+                <p style="color: var(--gray-500); font-size: var(--font-size-sm); margin: 0;">
+                    Ollama обойдёт все активные сайты и добавит найденные возможности на модерацию.
+                    Автозапуск: каждые 24 часа.
+                </p>
+            </div>
+            <form method="post" action="{{ url_for('admin_scraping_run') }}" id="scrape-form">
+                <button type="submit" id="scrape-btn" class="btn btn-primary" {% if not ollama_available %}disabled title="Запустите Ollama"{% endif %}>
+                    ▶ Запустить скрапинг
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Список целей -->
+    <div class="card" style="margin-bottom: var(--spacing-lg);">
+        <div style="padding: var(--spacing-lg); border-bottom: 1px solid var(--dark-border);">
+            <h3>Сайты для скрапинга</h3>
+        </div>
+
+        {% if targets %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--dark-border);">
+                        <th style="padding: 12px 20px; text-align: left; font-size: var(--font-size-xs); color: var(--gray-500); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;">Название</th>
+                        <th style="padding: 12px 20px; text-align: left; font-size: var(--font-size-xs); color: var(--gray-500); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;">URL</th>
+                        <th style="padding: 12px 20px; text-align: center; font-size: var(--font-size-xs); color: var(--gray-500); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;">Авто</th>
+                        <th style="padding: 12px 20px; text-align: left; font-size: var(--font-size-xs); color: var(--gray-500); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;">Последний скрапинг</th>
+                        <th style="padding: 12px 20px; text-align: right; font-size: var(--font-size-xs); color: var(--gray-500); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in targets %}
+                    <tr style="border-bottom: 1px solid var(--dark-border); {% if not t.is_active %}opacity: 0.5;{% endif %}">
+                        <td style="padding: 14px 20px;">
+                            <span style="font-weight: 500; color: var(--gray-100);">{{ t.name }}</span>
+                            {% if not t.is_active %}
+                                <span style="font-size: var(--font-size-xs); color: var(--gray-500); margin-left: 6px;">(неактивна)</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 14px 20px;">
+                            <a href="{{ t.url }}" target="_blank" style="color: var(--gray-400); font-size: var(--font-size-xs); word-break: break-all;">{{ t.url }}</a>
+                        </td>
+                        <td style="padding: 14px 20px; text-align: center;">
+                            {% if t.auto_scrape %}
+                                <span style="color: #66BB6A; font-size: var(--font-size-xs);">✓</span>
+                            {% else %}
+                                <span style="color: var(--gray-600); font-size: var(--font-size-xs);">—</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 14px 20px; font-size: var(--font-size-xs); color: var(--gray-500);">
+                            {% if t.last_scraped %}
+                                {{ t.last_scraped.strftime('%d.%m.%Y %H:%M') }}
+                            {% else %}
+                                Никогда
+                            {% endif %}
+                        </td>
+                        <td style="padding: 14px 20px; text-align: right; white-space: nowrap;">
+                            <form method="post" action="{{ url_for('admin_scraping_toggle_target', target_id=t.id) }}" style="display: inline;">
+                                <button type="submit" class="btn btn-secondary btn-sm">
+                                    {% if t.is_active %}Откл{% else %}Вкл{% endif %}
+                                </button>
+                            </form>
+                            <form method="post" action="{{ url_for('admin_scraping_delete_target', target_id=t.id) }}" style="display: inline;" onsubmit="return confirm('Удалить цель «{{ t.name }}»?')">
+                                <button type="submit" class="btn btn-sm" style="background: rgba(255,100,100,0.1); color: #EF5350; border: 1px solid rgba(255,100,100,0.3);">Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="padding: var(--spacing-xl); text-align: center; color: var(--gray-500);">
+            Нет добавленных сайтов. Добавьте первый ниже.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Добавить новую цель -->
+    <div class="card" style="padding: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+        <h3 style="margin-bottom: var(--spacing-md);">Добавить сайт</h3>
+        <form method="post" action="{{ url_for('admin_scraping_add_target') }}">
+            <div style="display: grid; grid-template-columns: 1fr 2fr auto auto; gap: var(--spacing-md); align-items: end;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Название</label>
+                    <input type="text" name="name" class="form-control" placeholder="Конкурс XYZ" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">URL страницы</label>
+                    <input type="url" name="url" class="form-control" placeholder="http://..." required>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="white-space: nowrap;">Авто-скрапинг</label>
+                    <div style="display: flex; align-items: center; height: 44px;">
+                        <input type="checkbox" name="auto_scrape" checked style="width: 18px; height: 18px;">
+                    </div>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                </div>
+            </div>
+        </form>
+
+        <div style="margin-top: var(--spacing-lg); padding-top: var(--spacing-md); border-top: 1px solid var(--dark-border);">
+            <p style="font-size: var(--font-size-xs); color: var(--gray-500); margin-bottom: 8px;">Тестовые фейковые сайты (уже добавлены по умолчанию):</p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <a href="{{ url_for('fake_site_techcontest') }}" target="_blank" class="btn btn-secondary btn-sm">Tech Contest →</a>
+                <a href="{{ url_for('fake_site_artcompetition') }}" target="_blank" class="btn btn-secondary btn-sm">Art Competition →</a>
+                <a href="{{ url_for('fake_site_sciencegrant') }}" target="_blank" class="btn btn-secondary btn-sm">Science Grant →</a>
+                <a href="{{ url_for('fake_site_template') }}" target="_blank" class="btn btn-secondary btn-sm">Шаблон →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TUTORIAL: Как добавить свой сайт ===== -->
+    <div class="card" style="padding: var(--spacing-lg);">
+        <h3 style="margin-bottom: 6px;">📖 Как добавить свой сайт для скрапинга</h3>
+        <p style="color: var(--gray-500); font-size: var(--font-size-sm); margin-bottom: var(--spacing-lg);">
+            AI умеет читать любой HTML-сайт и автоматически находить название, описание, категорию, дедлайн и ссылку на регистрацию.
+            Ниже — 4 шага чтобы добавить любой сайт.
+        </p>
+
+        <!-- Step 1 -->
+        <div style="display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+            <div style="min-width: 36px; height: 36px; background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--gold); flex-shrink: 0;">1</div>
+            <div>
+                <h4 style="margin-bottom: 4px;">Создайте HTML-файл</h4>
+                <p style="color: var(--gray-400); font-size: var(--font-size-sm); margin-bottom: 10px;">
+                    Создайте обычный <code>.html</code> файл с информацией о конкурсе.
+                    Главное — разместите контент внутри тега <code>&lt;main&gt;</code>, <code>&lt;article&gt;</code> или <code>&lt;section&gt;</code>,
+                    чтобы AI сразу нашёл нужную информацию и не читал меню и подвал.
+                </p>
+                <div style="background: var(--dark-bg); border: 1px solid var(--dark-border); border-radius: var(--radius-sm); padding: var(--spacing-md); overflow-x: auto;">
+<pre style="margin: 0; font-size: 12px; color: var(--gray-300); line-height: 1.6;">&lt;!DOCTYPE html&gt;
+&lt;html lang="ru"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;Название конкурса&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+  &lt;!-- Обязательно оберните основной контент в &lt;main&gt; --&gt;
+  &lt;main&gt;
+    &lt;h1&gt;Название вашего конкурса&lt;/h1&gt;
+    &lt;p&gt;Краткое описание: о чём конкурс, что нужно сделать.&lt;/p&gt;
+
+    &lt;h2&gt;Требования&lt;/h2&gt;
+    &lt;p&gt;Студенты от 18 до 25 лет, специальность IT или инженерия.&lt;/p&gt;
+
+    &lt;h2&gt;Дедлайн&lt;/h2&gt;
+    &lt;p&gt;Срок подачи заявок: 30 мая 2025&lt;/p&gt;
+
+    &lt;h2&gt;Регистрация&lt;/h2&gt;
+    &lt;a href="https://example.com/register"&gt;Подать заявку&lt;/a&gt;
+  &lt;/main&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+                </div>
+                <p style="color: var(--gray-500); font-size: var(--font-size-xs); margin-top: 8px;">
+                    💡 <strong>Форматы дедлайна</strong>, которые понимает AI: <code>30.05.2025</code>, <code>30 мая 2025</code>,
+                    <code>May 30, 2025</code>, <code>до 30 мая</code>, <code>Deadline: June 1</code>, <code>срок подачи: 01.06</code>
+                </p>
+                <p style="color: var(--gray-500); font-size: var(--font-size-xs); margin-top: 4px;">
+                    🌐 <strong>Язык</strong>: AI понимает русский, английский, казахский и другие языки — пишите как вам удобно.
+                </p>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div style="display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+            <div style="min-width: 36px; height: 36px; background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--gold); flex-shrink: 0;">2</div>
+            <div>
+                <h4 style="margin-bottom: 4px;">Опубликуйте сайт</h4>
+                <p style="color: var(--gray-400); font-size: var(--font-size-sm); margin: 0;">
+                    Скраппер должен уметь открыть URL через HTTP. Варианты:
+                </p>
+                <ul style="color: var(--gray-400); font-size: var(--font-size-sm); margin: 8px 0 0 0; padding-left: 20px; line-height: 1.8;">
+                    <li><strong>Локальный Flask-маршрут</strong> — добавьте шаблон в папку <code>templates/fake_sites/</code> и создайте маршрут в <code>app.py</code> (как сделаны тестовые сайты выше)</li>
+                    <li><strong>GitHub Pages</strong> — бесплатный хостинг статики, подходит для HTML-файлов</li>
+                    <li><strong>Любой веб-хостинг</strong> — главное чтобы страница была публично доступна</li>
+                    <li><strong>Реальный сайт конкурса</strong> — скраппер работает и с настоящими сайтами</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div style="display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+            <div style="min-width: 36px; height: 36px; background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--gold); flex-shrink: 0;">3</div>
+            <div>
+                <h4 style="margin-bottom: 4px;">Добавьте URL в таблицу выше</h4>
+                <p style="color: var(--gray-400); font-size: var(--font-size-sm); margin: 0;">
+                    Заполните форму «Добавить сайт»: укажите название и полный URL (начинается с <code>http://</code> или <code>https://</code>).
+                    Включите «Авто-скрапинг» если хотите чтобы сайт проверялся раз в 24 часа.
+                </p>
+            </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div style="display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+            <div style="min-width: 36px; height: 36px; background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--gold); flex-shrink: 0;">4</div>
+            <div>
+                <h4 style="margin-bottom: 4px;">Запустите скрапинг и проверьте результат</h4>
+                <p style="color: var(--gray-400); font-size: var(--font-size-sm); margin: 0;">
+                    Нажмите «Запустить скрапинг» — AI обработает сайт и создаст карточку возможности со статусом <em>На проверке</em>.
+                    Затем зайдите в <a href="{{ url_for('admin') }}" style="color: var(--gold);">Панель администратора</a>
+                    и подтвердите (Verify) карточку, чтобы она появилась в ленте для студентов.
+                </p>
+            </div>
+        </div>
+
+        <!-- Download template button -->
+        <div style="padding-top: var(--spacing-md); border-top: 1px solid var(--dark-border); display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap;">
+            <a href="{{ url_for('fake_site_template') }}" target="_blank" class="btn btn-secondary">
+                📄 Открыть HTML-шаблон
+            </a>
+            <span style="color: var(--gray-500); font-size: var(--font-size-xs);">
+                Готовый файл с подробными комментариями — скопируйте и заполните своими данными
+            </span>
+        </div>
+    </div>
+
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+(function () {
+    var params = new URLSearchParams(window.location.search);
+    var isPolling = params.get('scraping') === '1';
+
+    var btn = document.getElementById('scrape-btn');
+    var form = document.getElementById('scrape-form');
+    var banner = document.getElementById('scraping-banner');
+
+    function setRunning() {
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '⏳ Идёт скрапинг…';
+        }
+        if (banner) banner.style.display = 'flex';
+    }
+
+    // If page loaded with ?scraping=1, start polling immediately
+    if (isPolling) {
+        setRunning();
+        pollStatus();
+    }
+
+    // Disable button on form submit to prevent double-submit
+    if (form) {
+        form.addEventListener('submit', function () {
+            setRunning();
+        });
+    }
+
+    function pollStatus() {
+        fetch('{{ url_for("admin_scraping_status") }}')
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.running) {
+                    setTimeout(pollStatus, 3000);
+                } else {
+                    // Scraping finished — reload without ?scraping=1
+                    window.location.href = '{{ url_for("admin_scraping") }}';
+                }
+            })
+            .catch(function () {
+                // Network error — retry
+                setTimeout(pollStatus, 5000);
+            });
+    }
+})();
+</script>
+
+{% endblock %}

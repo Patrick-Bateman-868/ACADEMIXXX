@@ -1,5 +1,5 @@
 
-from flask import Flask, render_template, request, redirect, flash, url_for
+from flask import Flask, render_template, request, redirect, flash, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,14 +8,13 @@ from functools import wraps
 from sqlalchemy import text, inspect
 from sqlalchemy.pool import NullPool
 import re
+import threading
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 
-app = Flask(__name__)
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
+# ---- Background scraping state ----
+_scraping_lock = threading.Lock()
+_scraping_status = {"running": False, "result": None, "started_at": None}
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "dev-secret-key-change-in-production"
@@ -281,11 +280,6 @@ def home():
     }
     return render_template("home.html", stats=stats)
 
-app = Flask(__name__)
-
-@app.route('/')
-def random():
-    return render_template('random.html')
 
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
@@ -943,8 +937,12 @@ def fake_site_sciencegrant():
 def random_site():
     return render_template("fake_sites/random.html")
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
+@app.route("/fake-sites/template")
+def fake_site_template():
+    return render_template("fake_sites/template.html")
+
+
 # ============================================
 # Other
 # ============================================
